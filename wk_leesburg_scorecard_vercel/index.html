@@ -1,0 +1,395 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WK Leesburg · Weekly Scorecard</title>
+<style>
+:root{--hunt:#2F4734;--ox:#6B2227;--gold:#B08D2B;--parch:#F4EEE1;
+  --ink:#1E1E1E;--line:#d8cdb6;--card:#fbf7ee;--muted:#6f6a5c;--alt:#f3ede0;
+  --up:#1a6b3a;--dn:#8b1a1a;--neu:#5a5246;--r:10px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--parch);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:14px;line-height:1.45;padding-bottom:60px}
+h1,h2,h3{font-family:Georgia,serif}
+.top{background:var(--hunt);padding:16px 20px 14px}
+.top b{font-family:Georgia;font-size:20px;color:#fff;display:block}
+.top .sub{font-size:12px;color:#adc4ad;margin-top:3px}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px}
+h2.sec{font-size:19px;color:var(--hunt);border-bottom:2px solid var(--gold);
+  padding-bottom:6px;margin:24px 0 6px}
+.lede{color:var(--muted);font-size:13px;margin:4px 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,.07)}
+.card-title{font-family:Georgia;font-size:14px;font-weight:700;color:var(--hunt);margin:0 0 12px}
+.note{background:#fff6ec;border:1px solid var(--gold);border-left:4px solid var(--hunt);
+  padding:9px 13px;font-size:13px;color:#4a463c;border-radius:0 var(--r) var(--r) 0;margin:10px 0}
+.note a{color:var(--hunt)}
+.loading{text-align:center;padding:60px 20px;color:var(--muted);font-size:15px}
+.loading .spinner{width:32px;height:32px;border:3px solid var(--line);border-top-color:var(--hunt);
+  border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+select{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);
+  border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
+.ctrl label{font-size:12px;font-weight:700;color:var(--muted)}
+/* scorecard table */
+.sc-table{width:100%;border-collapse:collapse;font-size:13px}
+.sc-table th{background:var(--hunt);color:#f3efe3;padding:8px 10px;
+  text-align:center;font-size:11.5px;font-weight:600;white-space:nowrap;position:sticky;top:0}
+.sc-table th:first-child{text-align:left;min-width:180px}
+.sc-table td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:center}
+.sc-table td:first-child{text-align:left;font-weight:600}
+.sc-table tr:nth-child(even) td{background:var(--alt)}
+.d-up{color:var(--up);font-weight:700}
+.d-dn{color:var(--dn);font-weight:700}
+.d-neu{color:var(--neu)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;flex-shrink:0}
+/* mini compare */
+.metric-row{display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px;gap:8px}
+.metric-row:last-child{border:none}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* trend */
+svg{display:block;overflow:visible}
+/* hist grid */
+.hist-table{border-collapse:collapse;font-size:11.5px}
+.hist-table td,.hist-table th{padding:5px 7px;border:1px solid var(--line);text-align:center}
+.hist-table th{background:var(--hunt);color:#fff;font-size:10.5px}
+/* week selector */
+.week-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.pill{font:inherit;font-size:11.5px;padding:4px 10px;border:1px solid var(--line);
+  border-radius:14px;background:var(--card);cursor:pointer;color:var(--muted)}
+.pill.on{background:var(--hunt);color:#fff;border-color:var(--hunt)}
+@media(max-width:640px){.two{grid-template-columns:1fr}.sc-table{font-size:11.5px}}
+</style>
+
+<div class="top">
+  <b>Wine Kitchen · Leesburg — Weekly Scorecard</b>
+  <div class="sub">Jun 2025–Jun 2026 baseline · Updated weekly</div>
+</div>
+
+<div class="wrap">
+  <div id="root"><div class="loading"><div class="spinner"></div>Loading scorecard data…</div></div>
+</div>
+
+<script>
+const METS = [["avg_check", "Avg check", "$", "#2F4734"], ["dinner_avg", "Dinner avg check", "$", "#2F4734"], ["lunch_avg", "Lunch avg check", "$", "#3d6a7a"], ["pasta", "Pasta %", "%", "#2F4734"], ["entree", "Entr\u00e9e %", "%", "#3d6a7a"], ["apps_snack", "App or snack %", "%", "#6b8e6f"], ["dessert", "Dessert (\u00e0 la carte) %", "%", "#a8632f"], ["wine_any", "Wine (any) %", "%", "#6B2227"], ["bottle", "Bottle attach %", "%", "#6B2227"], ["specialty", "Specialty cocktail %", "%", "#B08D2B"], ["cocktail", "Any cocktail %", "%", "#B08D2B"], ["food_pct", "Food % of revenue", "%", "#2F4734"], ["wine_pct", "Wine % of revenue", "%", "#6B2227"], ["liq_pct", "Liquor % of revenue", "%", "#B08D2B"]];
+const HUNT="#2F4734",OX="#6B2227",GOLD="#B08D2B",GREY="#9a9584";
+
+// ── DATA LOAD ────────────────────────────────────────────────────
+const BASE_URL = (()=>{
+  // Works on Vercel (relative paths) and locally (same directory)
+  const loc = window.location.href;
+  if(loc.includes('localhost') || loc.includes('127.0.0.1') || loc.startsWith('file'))
+    return './data/';
+  return './data/';
+})();
+
+async function loadData(){
+  try{
+    const [blRes, histRes] = await Promise.all([
+      fetch(BASE_URL+'scorecard_baseline.json'),
+      fetch(BASE_URL+'scorecard_history.json'),
+    ]);
+    if(!blRes.ok||!histRes.ok) throw new Error("Failed to fetch data files");
+    const BL   = await blRes.json();
+    const HIST = await histRes.json();
+    const LW   = HIST.length ? HIST[HIST.length-1] : null;
+    return {BL, HIST, LW};
+  } catch(err){
+    const tried = BASE_URL + 'scorecard_baseline.json';
+    document.getElementById('root').innerHTML=`
+      <div class="note" style="margin-top:16px">
+        <b>Could not load data files.</b><br><br>
+        Tried to fetch: <code>${tried}</code><br>
+        Error: <b>${err.message}</b><br><br>
+        <b>If this is on Vercel:</b> check that <code>data/scorecard_baseline.json</code>
+        and <code>data/scorecard_history.json</code> were committed to your repo and
+        that the Vercel Root Directory is set to <code>/</code> (not a subfolder).<br><br>
+        <b>If running locally:</b> open a terminal in this folder and run:<br>
+        <code>python -m http.server 8000</code><br>
+        Then open <a href="http://localhost:8000">http://localhost:8000</a>
+      </div>`;
+    return null;
+  }
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────
+function fv(v,fmt){
+  if(v==null)return'—';
+  return fmt==='$'?'$'+parseFloat(v).toFixed(2):parseFloat(v).toFixed(1)+'%';
+}
+function dclass(d){
+  if(!d||d==='—')return'd-neu';
+  return d.startsWith('-')||d.startsWith('-$')?'d-dn':'d-up';
+}
+function el(id){return document.getElementById(id);}
+
+// ── MAIN RENDER ──────────────────────────────────────────────────
+async function init(){
+  const data = await loadData();
+  if(!data) return;
+  const {BL, HIST, LW} = data;
+
+  // Build the full UI
+  document.getElementById('root').innerHTML = `
+    <div id="banner"></div>
+
+    <h2 class="sec">Latest Week vs Baselines</h2>
+    <p class="lede">15 metrics compared against the same week last year, the current season's
+    average, and the full Jun 2025–Jun 2026 annual baseline.
+    <b style="color:var(--up)">Green</b> = above baseline &nbsp;·&nbsp;
+    <b style="color:var(--dn)">Red</b> = below baseline.</p>
+
+    <div class="card" style="overflow-x:auto" id="sc_table_wrap">
+      <div class="loading" style="padding:30px"><div class="spinner"></div></div>
+    </div>
+
+    <div class="two">
+      <div class="card">
+        <div class="card-title">vs Same week last year</div>
+        <div id="ly_mini"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">vs Season baseline (${LW?LW.season:'—'})</div>
+        <div id="seas_mini"></div>
+      </div>
+    </div>
+
+    <h2 class="sec">Trend — Any Metric Over Time</h2>
+    <p class="lede">All ${HIST.length} ingested weeks. Hover a point for full details.</p>
+    <div class="ctrl">
+      <label>Metric:</label>
+      <select id="trend_met"></select>
+      <label style="margin-left:6px">Baseline:</label>
+      <select id="trend_bl">
+        <option value="season">Season baseline</option>
+        <option value="annual">Annual baseline</option>
+        <option value="none">None</option>
+      </select>
+    </div>
+    <div class="card">
+      <svg id="trend_svg" viewBox="0 0 860 240" width="100%"></svg>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:8px" id="trend_tip">
+        Hover a point to see that week's details</div>
+    </div>
+
+    <h2 class="sec">Week-by-Week History</h2>
+    <p class="lede">Every ingested week. Pick a metric — darker cell = higher value.
+    Click any cell to load that week into the scorecard above.</p>
+    <div class="ctrl">
+      <label>Metric:</label>
+      <select id="hist_met"></select>
+    </div>
+    <div class="card" style="overflow-x:auto"><div id="hist_grid"></div></div>
+
+    <h2 class="sec" style="margin-top:28px">How to Update</h2>
+    <div class="card" style="font-size:13px;color:var(--muted)">
+      <ol style="margin:0;padding-left:18px;line-height:2">
+        <li>Export <b>ItemSelectionDetails</b> + <b>DiscountDetails</b> from Toast for the week</li>
+        <li>Drop files in <code>/mnt/user-data/uploads/</code> alongside <code>All_levels.csv</code></li>
+        <li>Run: <code>python weekly_ingest.py --start YYYY-MM-DD --end YYYY-MM-DD</code></li>
+        <li>Copy <code>runs/scorecard_history.json</code> → <code>data/scorecard_history.json</code> in this repo</li>
+        <li><code>git add data/scorecard_history.json && git commit -m "Week of …" && git push</code></li>
+        <li>Vercel deploys in ~20 seconds — everyone with the URL sees the update</li>
+      </ol>
+    </div>
+  `;
+
+  // Select the active week (default = latest)
+  let activeWk = LW;
+
+  function renderAll(wk){
+    activeWk = wk;
+    renderBanner(wk);
+    renderTable(wk, BL);
+    renderMini('ly_mini',   wk, 'ly');
+    renderMini('seas_mini', wk, 'season_bl');
+  }
+
+  // ── BANNER ──────────────────────────────────────────────────────
+  function renderBanner(wk){
+    if(!wk){el('banner').innerHTML='<div class="note">No weeks ingested yet — run weekly_ingest.py first.</div>';return;}
+    el('banner').innerHTML=`<div class="note">
+      <b>${wk.date_range || wk.week_key}</b> &nbsp;·&nbsp;
+      ${wk.n} checks &nbsp;·&nbsp;
+      ${wk.net ? '$'+(wk.net/1000).toFixed(1)+'K net (modeled)' : ''} &nbsp;·&nbsp;
+      Avg check <b>$${wk.avg_check}</b> &nbsp;·&nbsp;
+      Season: ${wk.season} &nbsp;·&nbsp;
+      Same week LY: ${wk.same_week_ly}
+    </div>`;
+  }
+
+  // ── SCORECARD TABLE ────────────────────────────────────────────
+  function renderTable(wk, BL){
+    if(!wk){el('sc_table_wrap').innerHTML='<p style="color:var(--muted);padding:12px">No week loaded.</p>';return;}
+    const cmp = wk.comparisons || {};
+    let t=`<table class="sc-table"><thead>
+      <tr>
+        <th>Metric</th>
+        <th>This week</th>
+        <th>LY same wk<br><span style="font-weight:400;font-size:10px">${wk.same_week_ly||'—'}</span></th>
+        <th>Δ LY</th>
+        <th>Season BL<br><span style="font-weight:400;font-size:10px">${wk.season||''}</span></th>
+        <th>Δ Season</th>
+        <th>Annual BL</th>
+        <th>Δ Annual</th>
+      </tr></thead><tbody>`;
+    METS.forEach(([key,lbl,fmt,col])=>{
+      const c = cmp[key]||{};
+      const dly=c.delta_ly, dse=c.delta_season, dann=c.delta_annual;
+      t+=`<tr>
+        <td><span class="dot" style="background:${col}"></span>${lbl}</td>
+        <td><b>${fv(c.this,fmt)}</b></td>
+        <td>${fv(c.ly,fmt)}</td>
+        <td class="${dclass(dly)}">${dly||'—'}</td>
+        <td>${fv(c.season_bl,fmt)}</td>
+        <td class="${dclass(dse)}">${dse||'—'}</td>
+        <td>${fv(c.annual_bl,fmt)}</td>
+        <td class="${dclass(dann)}">${dann||'—'}</td>
+      </tr>`;
+    });
+    el('sc_table_wrap').innerHTML=t+'</tbody></table>';
+  }
+
+  // ── MINI COMPARE ───────────────────────────────────────────────
+  function renderMini(elid, wk, bl_key){
+    if(!wk){el(elid).innerHTML='<span style="color:var(--muted)">—</span>';return;}
+    const cmp=wk.comparisons||{};
+    const rows=METS.slice(0,9).map(([key,lbl,fmt,col])=>{
+      const c=cmp[key]||{};
+      const a=c.this; const d=bl_key==='ly'?c.delta_ly:c.delta_season;
+      return`<div class="metric-row">
+        <span><span class="dot" style="background:${col}"></span>${lbl}</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span>${fv(a,fmt)}</span>
+          <span class="${dclass(d)}" style="font-size:11.5px;min-width:50px;text-align:right">${d||'—'}</span>
+        </span>
+      </div>`;}).join('');
+    el(elid).innerHTML=rows;
+  }
+
+  // ── TREND CHART ────────────────────────────────────────────────
+  const trend_met_sel = el('trend_met');
+  const trend_bl_sel  = el('trend_bl');
+  trend_met_sel.innerHTML = METS.map(([k,l])=>`<option value="${k}">${l}</option>`).join('');
+  trend_met_sel.value = METS[0][0];
+
+  function drawTrend(){
+    const key   = trend_met_sel.value;
+    const blkey = trend_bl_sel.value;
+    const met   = METS.find(m=>m[0]===key)||METS[0];
+    const fmt   = met[2]; const col = met[3];
+    const W=860,H=240,L=52,R=22,T=14,B=36;
+    const weeks = HIST.filter(w=>w[key]!=null)
+                      .map(w=>({wk:w.week_key,v:w[key],label:w.date_range||w.week_key,n:w.n,season:w.season}));
+    if(!weeks.length){
+      el('trend_svg').innerHTML='<text x="430" y="120" text-anchor="middle" font-size="13" fill="#9a9584">No data yet</text>';
+      return;
+    }
+    const vals=weeks.map(w=>w.v);
+    const lo=Math.min(...vals),hi=Math.max(...vals),pad=(hi-lo)*0.14||0.5;
+    const ylo=lo-pad, yhi=hi+pad;
+    const xi=(i)=>L+i*(W-L-R)/(Math.max(weeks.length-1,1));
+    const y=(v)=>H-B-(v-ylo)/(yhi-ylo)*(H-T-B);
+    let g='';
+
+    // baseline
+    let blv=null;
+    if(blkey==='annual'&&BL.baselines&&BL.baselines.annual) blv=BL.baselines.annual[key];
+    if(blkey==='season'&&BL.baselines&&BL.baselines.by_season){
+      // average across seasons weighted by n
+      const svs=Object.values(BL.baselines.by_season).map(s=>s[key]).filter(v=>v!=null);
+      blv=svs.length?svs.reduce((a,b)=>a+b,0)/svs.length:null;
+    }
+    if(blv!=null){
+      const by=y(blv).toFixed(1);
+      g+=`<line x1="${L}" y1="${by}" x2="${W-R}" y2="${by}" stroke="${GOLD}" stroke-width="1.5" stroke-dasharray="5 3" opacity=".75"/>`;
+      g+=`<text x="${W-R+3}" y="${parseFloat(by)+3}" font-size="9" fill="${GOLD}">${fv(blv,fmt)}</text>`;
+    }
+
+    // grid
+    for(let i=0;i<=4;i++){
+      const v=ylo+(yhi-ylo)*i/4; const yy=y(v).toFixed(1);
+      g+=`<line x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}" stroke="#e6ddc7"/>`;
+      g+=`<text x="${L-4}" y="${parseFloat(yy)+3}" text-anchor="end" font-size="9" fill="${GREY}">${fmt==='$'?'$'+v.toFixed(0):v.toFixed(1)+'%'}</text>`;
+    }
+
+    // area
+    const path=weeks.map((w,i)=>`${i?'L':'M'}${xi(i).toFixed(1)},${y(w.v).toFixed(1)}`).join(' ');
+    const ay=y(ylo).toFixed(1);
+    g+=`<path d="${path} L${xi(weeks.length-1)},${ay} L${xi(0)},${ay} Z" fill="${col}" opacity=".10"/>`;
+    g+=`<path d="${path}" fill="none" stroke="${col}" stroke-width="2"/>`;
+
+    // points + x labels
+    weeks.forEach((w,i)=>{
+      g+=`<circle cx="${xi(i).toFixed(1)}" cy="${y(w.v).toFixed(1)}" r="4" fill="${col}" opacity=".9" style="cursor:pointer"/>`;
+      if(i%4===0||i===weeks.length-1){
+        const parts=w.wk.split('-W');
+        g+=`<text x="${xi(i).toFixed(1)}" y="${H-B+14}" text-anchor="middle" font-size="8.5" fill="${GREY}">W${parts[1]}'${parts[0].slice(2)}</text>`;
+      }
+    });
+
+    const svg=el('trend_svg'); svg.innerHTML=g;
+    svg.onmousemove=e=>{
+      const rect=svg.getBoundingClientRect();
+      const px=(e.clientX-rect.left)*W/rect.width;
+      const step=(W-L-R)/Math.max(weeks.length-1,1);
+      const i=Math.max(0,Math.min(weeks.length-1,Math.round((px-L)/step)));
+      const w=weeks[i];
+      el('trend_tip').innerHTML=`<b>${w.label}</b> · ${met[1]}: <b style="color:${col}">${fv(w.v,fmt)}</b> · ${w.n} checks · ${w.season}`;
+    };
+  }
+  trend_met_sel.onchange=drawTrend; trend_bl_sel.onchange=drawTrend; drawTrend();
+
+  // ── HISTORY GRID ───────────────────────────────────────────────
+  const hist_met_sel=el('hist_met');
+  hist_met_sel.innerHTML=METS.map(([k,l])=>`<option value="${k}">${l}</option>`).join('');
+  hist_met_sel.value=METS[0][0];
+
+  function drawGrid(){
+    const key=hist_met_sel.value;
+    const met=METS.find(m=>m[0]===key)||METS[0];
+    const fmt=met[2];
+    const weeks=HIST.filter(w=>w[key]!=null);
+    if(!weeks.length){el('hist_grid').innerHTML='<p style="color:var(--muted)">No history yet.</p>';return;}
+    const vals=weeks.map(w=>w[key]);
+    const lo=Math.min(...vals),hi=Math.max(...vals);
+    const byYear={};
+    weeks.forEach(w=>{const yr=w.week_key.split('-W')[0];(byYear[yr]=byYear[yr]||[]).push(w);});
+
+    let t=`<table class="hist-table" style="width:max-content">`;
+    Object.keys(byYear).sort().forEach(yr=>{
+      const wks=byYear[yr];
+      t+=`<tr><td style="font-weight:700;background:var(--alt);white-space:nowrap;padding:5px 10px">${yr}</td>`;
+      wks.forEach(w=>{
+        const v=w[key]; const heat=(v-lo)/(hi-lo||1);
+        const bg=`rgba(47,71,52,${(0.06+heat*0.72).toFixed(2)})`;
+        const fg=heat>0.55?'#fff':'var(--ink)';
+        const wnum=w.week_key.split('-W')[1];
+        const isActive=activeWk&&activeWk.week_key===w.week_key;
+        t+=`<td onclick="loadWeek('${w.week_key}')"
+          title="${w.date_range||w.week_key}: ${fv(v,fmt)}"
+          style="background:${bg};color:${fg};cursor:pointer;
+            ${isActive?'outline:2px solid var(--gold);outline-offset:-2px':''}">
+          <div style="font-size:9px;opacity:.7">W${wnum}</div>
+          <div style="font-weight:700">${fv(v,fmt)}</div>
+        </td>`;});
+      t+=`</tr>`;
+    });
+    el('hist_grid').innerHTML=t+'</table>';
+  }
+  hist_met_sel.onchange=drawGrid; drawGrid();
+
+  // Week click handler
+  window.loadWeek=function(wk_key){
+    const wk=HIST.find(w=>w.week_key===wk_key);
+    if(wk){ renderAll(wk); drawGrid(); window.scrollTo(0,0); }
+  };
+
+  // Initial render
+  renderAll(LW);
+}
+
+init();
+</script>
