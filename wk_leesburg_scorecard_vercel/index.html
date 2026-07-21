@@ -14,7 +14,7 @@ h1,h2,h3{font-family:Georgia,serif}
 .top{background:var(--hunt);padding:16px 20px 14px}
 .top b{font-family:Georgia;font-size:20px;color:#fff;display:block}
 .top .sub{font-size:12px;color:#adc4ad;margin-top:3px}
-.wrap{max-width:1100px;margin:0 auto;padding:20px 16px}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px}
 h2.sec{font-size:19px;color:var(--hunt);border-bottom:2px solid var(--gold);
   padding-bottom:6px;margin:24px 0 6px}
 .lede{color:var(--muted);font-size:13px;margin:4px 0 14px}
@@ -32,364 +32,202 @@ select{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);
   border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer}
 .ctrl{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}
 .ctrl label{font-size:12px;font-weight:700;color:var(--muted)}
-/* scorecard table */
 .sc-table{width:100%;border-collapse:collapse;font-size:13px}
 .sc-table th{background:var(--hunt);color:#f3efe3;padding:8px 10px;
   text-align:center;font-size:11.5px;font-weight:600;white-space:nowrap;position:sticky;top:0}
-.sc-table th:first-child{text-align:left;min-width:180px}
-.sc-table td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:center}
+.sc-table th:first-child{text-align:left;min-width:190px}
+.sc-table td{padding:6px 10px;border-bottom:1px solid var(--line);text-align:center}
 .sc-table td:first-child{text-align:left;font-weight:600}
 .sc-table tr:nth-child(even) td{background:var(--alt)}
+.sc-grouprow td{background:var(--hunt)!important;color:var(--gold);
+  font-family:Georgia;font-weight:700;font-size:11px;text-transform:uppercase;
+  letter-spacing:.5px;text-align:left;padding:5px 10px}
 .d-up{color:var(--up);font-weight:700}
 .d-dn{color:var(--dn);font-weight:700}
 .d-neu{color:var(--neu)}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;flex-shrink:0}
-/* mini compare */
 .metric-row{display:flex;justify-content:space-between;align-items:center;
   padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px;gap:8px}
 .metric-row:last-child{border:none}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-/* trend */
 svg{display:block;overflow:visible}
-/* hist grid */
 .hist-table{border-collapse:collapse;font-size:11.5px}
 .hist-table td,.hist-table th{padding:5px 7px;border:1px solid var(--line);text-align:center}
 .hist-table th{background:var(--hunt);color:#fff;font-size:10.5px}
-/* week selector */
-.week-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.pill{font:inherit;font-size:11.5px;padding:4px 10px;border:1px solid var(--line);
-  border-radius:14px;background:var(--card);cursor:pointer;color:var(--muted)}
-.pill.on{background:var(--hunt);color:#fff;border-color:var(--hunt)}
 @media(max-width:640px){.two{grid-template-columns:1fr}.sc-table{font-size:11.5px}}
 </style>
 
 <div class="top">
   <b>Wine Kitchen · Leesburg — Weekly Scorecard</b>
-  <div class="sub">Jun 2025–Jun 2026 baseline · Updated weekly</div>
+  <div class="sub">Jun 2025–Jun 2026 baseline · 36 metrics · Updated weekly</div>
 </div>
 
 <div class="wrap">
   <div id="root"><div class="loading"><div class="spinner"></div>Loading scorecard data…</div></div>
 </div>
 
+<script>window.__BL__={"annual":{"n":325.9,"net":33664.03,"avg_check":103.49,"dinner_avg":117.73,"lunch_avg":72.81,"dinner_n":222.48,"lunch_n":103.42,"food_pct":58.51,"wine_pct":29.86,"liq_pct":8.59,"beer_pct":0.82,"na_pct":2.03,"pasta":41.32,"entree":41.48,"apps_snack":51.02,"dessert":19.23,"wine_any":68.66,"bottle":12.9,"glass":50.46,"flight":25.07,"cocktail":34.55,"specialty":17.27,"total_covers":729.91,"walkin_cover_pct":54.01,"booked_cover_pct":45.99,"avg_party":2.39,"cancel_n":36.17,"noshow_n":5.4,"pct_solo":9.81,"pct_2top":65.07,"pct_3top":10.74,"pct_4top":9.91,"pct_group":4.47,"ps_bottle_2top":11.31,"ps_dessert_2top":20.34,"ps_avg_2top":94.68,"ps_bottle_4top":18.42,"ps_dessert_4top":26.78,"ps_avg_4top":163.16},"by_season":{"Summer":{"n":356.51,"net":36392.63,"avg_check":102.0,"dinner_avg":116.31,"lunch_avg":70.19,"dinner_n":246.45,"lunch_n":110.06,"food_pct":59.37,"wine_pct":28.29,"liq_pct":9.18,"beer_pct":0.89,"na_pct":1.98,"pasta":40.26,"entree":40.79,"apps_snack":50.27,"dessert":19.56,"wine_any":67.33,"bottle":12.34,"glass":49.35,"flight":24.99,"cocktail":37.22,"specialty":18.03,"total_covers":906.2,"walkin_cover_pct":58.37,"booked_cover_pct":41.63,"avg_party":2.37,"cancel_n":41.05,"noshow_n":5.35,"pct_solo":10.01,"pct_2top":65.24,"pct_3top":10.97,"pct_4top":9.73,"pct_group":4.05,"ps_bottle_2top":10.95,"ps_dessert_2top":21.53,"ps_avg_2top":93.91,"ps_bottle_4top":16.79,"ps_dessert_4top":24.64,"ps_avg_4top":157.14},"Fall":{"n":328.85,"net":32798.1,"avg_check":99.9,"dinner_avg":113.92,"lunch_avg":70.7,"dinner_n":222.04,"lunch_n":106.81,"food_pct":58.71,"wine_pct":29.76,"liq_pct":8.12,"beer_pct":0.96,"na_pct":2.22,"pasta":40.99,"entree":41.37,"apps_snack":50.64,"dessert":17.45,"wine_any":68.89,"bottle":11.34,"glass":51.79,"flight":24.16,"cocktail":31.96,"specialty":15.85,"total_covers":671.9,"walkin_cover_pct":58.03,"booked_cover_pct":41.97,"avg_party":2.37,"cancel_n":29.14,"noshow_n":5.16,"pct_solo":10.37,"pct_2top":65.41,"pct_3top":10.31,"pct_4top":9.2,"pct_group":4.73,"ps_bottle_2top":9.75,"ps_dessert_2top":18.66,"ps_avg_2top":92.71,"ps_bottle_4top":20.59,"ps_dessert_4top":21.47,"ps_avg_4top":153.45},"Winter":{"n":285.8,"net":31169.71,"avg_check":108.95,"dinner_avg":123.28,"lunch_avg":80.32,"dinner_n":189.52,"lunch_n":96.28,"food_pct":57.41,"wine_pct":31.41,"liq_pct":8.45,"beer_pct":0.61,"na_pct":1.96,"pasta":42.62,"entree":42.34,"apps_snack":53.03,"dessert":21.09,"wine_any":70.41,"bottle":15.28,"glass":50.63,"flight":26.54,"cocktail":34.86,"specialty":18.22,"total_covers":597.14,"walkin_cover_pct":45.62,"booked_cover_pct":54.38,"avg_party":2.42,"cancel_n":38.8,"noshow_n":5.28,"pct_solo":8.96,"pct_2top":64.94,"pct_3top":10.92,"pct_4top":10.24,"pct_group":4.92,"ps_bottle_2top":13.61,"ps_dessert_2top":21.85,"ps_avg_2top":98.12,"ps_bottle_4top":17.29,"ps_dessert_4top":32.97,"ps_avg_4top":166.03},"Spring":{"n":315.56,"net":33010.0,"avg_check":104.78,"dinner_avg":119.2,"lunch_avg":72.16,"dinner_n":218.26,"lunch_n":97.29,"food_pct":57.99,"wine_pct":30.93,"liq_pct":8.3,"beer_pct":0.73,"na_pct":1.97,"pasta":42.0,"entree":41.82,"apps_snack":50.66,"dessert":18.92,"wine_any":68.91,"bottle":13.28,"glass":50.75,"flight":24.52,"cocktail":32.98,"specialty":16.8,"total_covers":649.46,"walkin_cover_pct":50.63,"booked_cover_pct":49.37,"avg_party":2.39,"cancel_n":34.06,"noshow_n":5.9,"pct_solo":9.64,"pct_2top":64.57,"pct_3top":10.72,"pct_4top":10.57,"pct_group":4.49,"ps_bottle_2top":11.39,"ps_dessert_2top":18.91,"ps_avg_2top":94.84,"ps_bottle_4top":19.81,"ps_dessert_4top":29.81,"ps_avg_4top":179.8}},"by_day":{"Tue":{"avg_check":95.28},"Wed":{"avg_check":97.97},"Thu":{"avg_check":99.89},"Fri":{"avg_check":108.13},"Sat":{"avg_check":113.7},"Sun":{"avg_check":102.31}},"meta":{"period":"Jun 2025 \u2013 Jun 2026","total_weeks":58,"generated":"2026-07-20","metric_count":39,"metrics":["n","net","avg_check","dinner_avg","lunch_avg","dinner_n","lunch_n","food_pct","wine_pct","liq_pct","beer_pct","na_pct","pasta","entree","apps_snack","dessert","wine_any","bottle","glass","flight","cocktail","specialty","total_covers","walkin_cover_pct","booked_cover_pct","avg_party","cancel_n","noshow_n","pct_solo","pct_2top","pct_3top","pct_4top","pct_group","ps_bottle_2top","ps_dessert_2top","ps_avg_2top","ps_bottle_4top","ps_dessert_4top","ps_avg_4top"]}};window.__HI__=[{"date_range":"2025-07-08 \u2013 2025-07-13","week_key":"2025-W28","season":"Summer","n":326,"net":33249.6,"avg_check":101.99,"dinner_avg":114.91,"lunch_avg":65.37,"dinner_n":241,"lunch_n":85,"food_pct":58.3,"wine_pct":29.4,"liq_pct":9.5,"beer_pct":1.1,"na_pct":1.6,"pasta":50.0,"entree":39.6,"apps_snack":52.1,"dessert":21.8,"wine_any":68.7,"bottle":12.3,"glass":49.4,"flight":26.1,"cocktail":38.0,"specialty":20.6,"exact_net":33604.0,"exact_orders":344,"exact_guests":731,"exact_avg":97.69,"total_covers":686,"walkin_cover_pct":62.4,"booked_cover_pct":37.6,"avg_party":2.38,"cancel_n":22,"noshow_n":7,"pct_solo":9.0,"pct_2top":63.9,"pct_3top":11.5,"pct_4top":13.2,"pct_group":2.4,"ps_avg_2top":94.43,"ps_bottle_2top":11.5,"ps_dessert_2top":22.9,"ps_avg_4top":171.5,"ps_bottle_4top":17.5,"ps_dessert_4top":25.0,"same_week_ly":"2024-W28","comparisons":{"avg_check":{"this":101.99,"ly":null,"season_bl":102.0,"annual_bl":103.49,"fmt":"$","delta_ly":null,"delta_season":"-$0.01","delta_annual":"-$1.50"},"exact_avg":{"this":97.69,"ly":null,"season_bl":null,"annual_bl":null,"fmt":"$","delta_ly":null,"delta_season":null,"delta_annual":null},"dinner_avg":{"this":114.91,"ly":null,"season_bl":116.31,"annual_bl":117.73,"fmt":"$","delta_ly":null,"delta_season":"-$1.40","delta_annual":"-$2.82"},"lunch_avg":{"this":65.37,"ly":null,"season_bl":70.19,"annual_bl":72.81,"fmt":"$","delta_ly":null,"delta_season":"-$4.82","delta_annual":"-$7.44"},"exact_net":{"this":33604.0,"ly":null,"season_bl":null,"annual_bl":null,"fmt":"$","delta_ly":null,"delta_season":null,"delta_annual":null},"net":{"this":33249.6,"ly":null,"season_bl":36392.63,"annual_bl":33664.03,"fmt":"$","delta_ly":null,"delta_season":"-$3143.03","delta_annual":"-$414.43"},"n":{"this":326,"ly":null,"season_bl":356.51,"annual_bl":325.9,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"exact_guests":{"this":731,"ly":null,"season_bl":null,"annual_bl":null,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"dinner_n":{"this":241,"ly":null,"season_bl":246.45,"annual_bl":222.48,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"lunch_n":{"this":85,"ly":null,"season_bl":110.06,"annual_bl":103.42,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"food_pct":{"this":58.3,"ly":null,"season_bl":59.37,"annual_bl":58.51,"fmt":"%","delta_ly":null,"delta_season":"-1.1pp","delta_annual":"-0.2pp"},"wine_pct":{"this":29.4,"ly":null,"season_bl":28.29,"annual_bl":29.86,"fmt":"%","delta_ly":null,"delta_season":"+1.1pp","delta_annual":"-0.5pp"},"liq_pct":{"this":9.5,"ly":null,"season_bl":9.18,"annual_bl":8.59,"fmt":"%","delta_ly":null,"delta_season":"+0.3pp","delta_annual":"+0.9pp"},"beer_pct":{"this":1.1,"ly":null,"season_bl":0.89,"annual_bl":0.82,"fmt":"%","delta_ly":null,"delta_season":"+0.2pp","delta_annual":"+0.3pp"},"na_pct":{"this":1.6,"ly":null,"season_bl":1.98,"annual_bl":2.03,"fmt":"%","delta_ly":null,"delta_season":"-0.4pp","delta_annual":"-0.4pp"},"pasta":{"this":50.0,"ly":null,"season_bl":40.26,"annual_bl":41.32,"fmt":"%","delta_ly":null,"delta_season":"+9.7pp","delta_annual":"+8.7pp"},"entree":{"this":39.6,"ly":null,"season_bl":40.79,"annual_bl":41.48,"fmt":"%","delta_ly":null,"delta_season":"-1.2pp","delta_annual":"-1.9pp"},"apps_snack":{"this":52.1,"ly":null,"season_bl":50.27,"annual_bl":51.02,"fmt":"%","delta_ly":null,"delta_season":"+1.8pp","delta_annual":"+1.1pp"},"dessert":{"this":21.8,"ly":null,"season_bl":19.56,"annual_bl":19.23,"fmt":"%","delta_ly":null,"delta_season":"+2.2pp","delta_annual":"+2.6pp"},"wine_any":{"this":68.7,"ly":null,"season_bl":67.33,"annual_bl":68.66,"fmt":"%","delta_ly":null,"delta_season":"+1.4pp","delta_annual":"+0.0pp"},"bottle":{"this":12.3,"ly":null,"season_bl":12.34,"annual_bl":12.9,"fmt":"%","delta_ly":null,"delta_season":"-0.0pp","delta_annual":"-0.6pp"},"glass":{"this":49.4,"ly":null,"season_bl":49.35,"annual_bl":50.46,"fmt":"%","delta_ly":null,"delta_season":"+0.0pp","delta_annual":"-1.1pp"},"flight":{"this":26.1,"ly":null,"season_bl":24.99,"annual_bl":25.07,"fmt":"%","delta_ly":null,"delta_season":"+1.1pp","delta_annual":"+1.0pp"},"cocktail":{"this":38.0,"ly":null,"season_bl":37.22,"annual_bl":34.55,"fmt":"%","delta_ly":null,"delta_season":"+0.8pp","delta_annual":"+3.5pp"},"specialty":{"this":20.6,"ly":null,"season_bl":18.03,"annual_bl":17.27,"fmt":"%","delta_ly":null,"delta_season":"+2.6pp","delta_annual":"+3.3pp"},"total_covers":{"this":686,"ly":null,"season_bl":906.2,"annual_bl":729.91,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"walkin_cover_pct":{"this":62.4,"ly":null,"season_bl":58.37,"annual_bl":54.01,"fmt":"%","delta_ly":null,"delta_season":"+4.0pp","delta_annual":"+8.4pp"},"booked_cover_pct":{"this":37.6,"ly":null,"season_bl":41.63,"annual_bl":45.99,"fmt":"%","delta_ly":null,"delta_season":"-4.0pp","delta_annual":"-8.4pp"},"avg_party":{"this":2.38,"ly":null,"season_bl":2.37,"annual_bl":2.39,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"cancel_n":{"this":22,"ly":null,"season_bl":41.05,"annual_bl":36.17,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"noshow_n":{"this":7,"ly":null,"season_bl":5.35,"annual_bl":5.4,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"pct_solo":{"this":9.0,"ly":null,"season_bl":10.01,"annual_bl":9.81,"fmt":"%","delta_ly":null,"delta_season":"-1.0pp","delta_annual":"-0.8pp"},"pct_2top":{"this":63.9,"ly":null,"season_bl":65.24,"annual_bl":65.07,"fmt":"%","delta_ly":null,"delta_season":"-1.3pp","delta_annual":"-1.2pp"},"pct_3top":{"this":11.5,"ly":null,"season_bl":10.97,"annual_bl":10.74,"fmt":"%","delta_ly":null,"delta_season":"+0.5pp","delta_annual":"+0.8pp"},"pct_4top":{"this":13.2,"ly":null,"season_bl":9.73,"annual_bl":9.91,"fmt":"%","delta_ly":null,"delta_season":"+3.5pp","delta_annual":"+3.3pp"},"pct_group":{"this":2.4,"ly":null,"season_bl":4.05,"annual_bl":4.47,"fmt":"%","delta_ly":null,"delta_season":"-1.6pp","delta_annual":"-2.1pp"},"ps_avg_2top":{"this":94.43,"ly":null,"season_bl":93.91,"annual_bl":94.68,"fmt":"$","delta_ly":null,"delta_season":"+$0.52","delta_annual":"-$0.25"},"ps_avg_4top":{"this":171.5,"ly":null,"season_bl":157.14,"annual_bl":163.16,"fmt":"$","delta_ly":null,"delta_season":"+$14.36","delta_annual":"+$8.34"},"ps_bottle_2top":{"this":11.5,"ly":null,"season_bl":10.95,"annual_bl":11.31,"fmt":"%","delta_ly":null,"delta_season":"+0.6pp","delta_annual":"+0.2pp"},"ps_bottle_4top":{"this":17.5,"ly":null,"season_bl":16.79,"annual_bl":18.42,"fmt":"%","delta_ly":null,"delta_season":"+0.7pp","delta_annual":"-0.9pp"},"ps_dessert_2top":{"this":22.9,"ly":null,"season_bl":21.53,"annual_bl":20.34,"fmt":"%","delta_ly":null,"delta_season":"+1.4pp","delta_annual":"+2.6pp"},"ps_dessert_4top":{"this":25.0,"ly":null,"season_bl":24.64,"annual_bl":26.78,"fmt":"%","delta_ly":null,"delta_season":"+0.4pp","delta_annual":"-1.8pp"}}},{"date_range":"2026-07-07 \u2013 2026-07-12","week_key":"2026-W28","season":"Summer","n":340,"net":34894.5,"avg_check":102.63,"dinner_avg":114.72,"lunch_avg":68.53,"dinner_n":251,"lunch_n":89,"food_pct":60.8,"wine_pct":27.8,"liq_pct":8.3,"beer_pct":0.5,"na_pct":2.4,"pasta":36.9,"entree":38.1,"apps_snack":48.1,"dessert":18.9,"wine_any":64.3,"bottle":8.0,"glass":48.4,"flight":25.1,"cocktail":26.0,"specialty":16.5,"exact_net":36084.6,"exact_orders":341,"exact_guests":710,"exact_avg":105.82,"total_covers":655,"walkin_cover_pct":49.5,"booked_cover_pct":50.5,"avg_party":2.36,"cancel_n":27,"noshow_n":5,"pct_solo":9.4,"pct_2top":65.3,"pct_3top":11.2,"pct_4top":8.7,"pct_group":5.4,"ps_avg_2top":99.99,"ps_bottle_2top":8.9,"ps_dessert_2top":21.6,"ps_avg_4top":166.1,"ps_bottle_4top":14.8,"ps_dessert_4top":25.9,"same_week_ly":"2025-W28","comparisons":{"avg_check":{"this":102.63,"ly":101.99,"season_bl":102.0,"annual_bl":103.49,"fmt":"$","delta_ly":"+$0.64","delta_season":"+$0.63","delta_annual":"-$0.86"},"exact_avg":{"this":105.82,"ly":null,"season_bl":null,"annual_bl":null,"fmt":"$","delta_ly":null,"delta_season":null,"delta_annual":null},"dinner_avg":{"this":114.72,"ly":114.91,"season_bl":116.31,"annual_bl":117.73,"fmt":"$","delta_ly":"-$0.19","delta_season":"-$1.59","delta_annual":"-$3.01"},"lunch_avg":{"this":68.53,"ly":65.37,"season_bl":70.19,"annual_bl":72.81,"fmt":"$","delta_ly":"+$3.16","delta_season":"-$1.66","delta_annual":"-$4.28"},"exact_net":{"this":36084.6,"ly":null,"season_bl":null,"annual_bl":null,"fmt":"$","delta_ly":null,"delta_season":null,"delta_annual":null},"net":{"this":34894.5,"ly":33249.6,"season_bl":36392.63,"annual_bl":33664.03,"fmt":"$","delta_ly":"+$1644.90","delta_season":"-$1498.13","delta_annual":"+$1230.47"},"n":{"this":340,"ly":326,"season_bl":356.51,"annual_bl":325.9,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"exact_guests":{"this":710,"ly":null,"season_bl":null,"annual_bl":null,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"dinner_n":{"this":251,"ly":241,"season_bl":246.45,"annual_bl":222.48,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"lunch_n":{"this":89,"ly":85,"season_bl":110.06,"annual_bl":103.42,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"food_pct":{"this":60.8,"ly":58.3,"season_bl":59.37,"annual_bl":58.51,"fmt":"%","delta_ly":"+2.5pp","delta_season":"+1.4pp","delta_annual":"+2.3pp"},"wine_pct":{"this":27.8,"ly":29.4,"season_bl":28.29,"annual_bl":29.86,"fmt":"%","delta_ly":"-1.6pp","delta_season":"-0.5pp","delta_annual":"-2.1pp"},"liq_pct":{"this":8.3,"ly":9.5,"season_bl":9.18,"annual_bl":8.59,"fmt":"%","delta_ly":"-1.2pp","delta_season":"-0.9pp","delta_annual":"-0.3pp"},"beer_pct":{"this":0.5,"ly":1.1,"season_bl":0.89,"annual_bl":0.82,"fmt":"%","delta_ly":"-0.6pp","delta_season":"-0.4pp","delta_annual":"-0.3pp"},"na_pct":{"this":2.4,"ly":1.6,"season_bl":1.98,"annual_bl":2.03,"fmt":"%","delta_ly":"+0.8pp","delta_season":"+0.4pp","delta_annual":"+0.4pp"},"pasta":{"this":36.9,"ly":50.0,"season_bl":40.26,"annual_bl":41.32,"fmt":"%","delta_ly":"-13.1pp","delta_season":"-3.4pp","delta_annual":"-4.4pp"},"entree":{"this":38.1,"ly":39.6,"season_bl":40.79,"annual_bl":41.48,"fmt":"%","delta_ly":"-1.5pp","delta_season":"-2.7pp","delta_annual":"-3.4pp"},"apps_snack":{"this":48.1,"ly":52.1,"season_bl":50.27,"annual_bl":51.02,"fmt":"%","delta_ly":"-4.0pp","delta_season":"-2.2pp","delta_annual":"-2.9pp"},"dessert":{"this":18.9,"ly":21.8,"season_bl":19.56,"annual_bl":19.23,"fmt":"%","delta_ly":"-2.9pp","delta_season":"-0.7pp","delta_annual":"-0.3pp"},"wine_any":{"this":64.3,"ly":68.7,"season_bl":67.33,"annual_bl":68.66,"fmt":"%","delta_ly":"-4.4pp","delta_season":"-3.0pp","delta_annual":"-4.4pp"},"bottle":{"this":8.0,"ly":12.3,"season_bl":12.34,"annual_bl":12.9,"fmt":"%","delta_ly":"-4.3pp","delta_season":"-4.3pp","delta_annual":"-4.9pp"},"glass":{"this":48.4,"ly":49.4,"season_bl":49.35,"annual_bl":50.46,"fmt":"%","delta_ly":"-1.0pp","delta_season":"-1.0pp","delta_annual":"-2.1pp"},"flight":{"this":25.1,"ly":26.1,"season_bl":24.99,"annual_bl":25.07,"fmt":"%","delta_ly":"-1.0pp","delta_season":"+0.1pp","delta_annual":"+0.0pp"},"cocktail":{"this":26.0,"ly":38.0,"season_bl":37.22,"annual_bl":34.55,"fmt":"%","delta_ly":"-12.0pp","delta_season":"-11.2pp","delta_annual":"-8.5pp"},"specialty":{"this":16.5,"ly":20.6,"season_bl":18.03,"annual_bl":17.27,"fmt":"%","delta_ly":"-4.1pp","delta_season":"-1.5pp","delta_annual":"-0.8pp"},"total_covers":{"this":655,"ly":686,"season_bl":906.2,"annual_bl":729.91,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"walkin_cover_pct":{"this":49.5,"ly":62.4,"season_bl":58.37,"annual_bl":54.01,"fmt":"%","delta_ly":"-12.9pp","delta_season":"-8.9pp","delta_annual":"-4.5pp"},"booked_cover_pct":{"this":50.5,"ly":37.6,"season_bl":41.63,"annual_bl":45.99,"fmt":"%","delta_ly":"+12.9pp","delta_season":"+8.9pp","delta_annual":"+4.5pp"},"avg_party":{"this":2.36,"ly":2.38,"season_bl":2.37,"annual_bl":2.39,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"cancel_n":{"this":27,"ly":22,"season_bl":41.05,"annual_bl":36.17,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"noshow_n":{"this":5,"ly":7,"season_bl":5.35,"annual_bl":5.4,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"pct_solo":{"this":9.4,"ly":9.0,"season_bl":10.01,"annual_bl":9.81,"fmt":"%","delta_ly":"+0.4pp","delta_season":"-0.6pp","delta_annual":"-0.4pp"},"pct_2top":{"this":65.3,"ly":63.9,"season_bl":65.24,"annual_bl":65.07,"fmt":"%","delta_ly":"+1.4pp","delta_season":"+0.1pp","delta_annual":"+0.2pp"},"pct_3top":{"this":11.2,"ly":11.5,"season_bl":10.97,"annual_bl":10.74,"fmt":"%","delta_ly":"-0.3pp","delta_season":"+0.2pp","delta_annual":"+0.5pp"},"pct_4top":{"this":8.7,"ly":13.2,"season_bl":9.73,"annual_bl":9.91,"fmt":"%","delta_ly":"-4.5pp","delta_season":"-1.0pp","delta_annual":"-1.2pp"},"pct_group":{"this":5.4,"ly":2.4,"season_bl":4.05,"annual_bl":4.47,"fmt":"%","delta_ly":"+3.0pp","delta_season":"+1.4pp","delta_annual":"+0.9pp"},"ps_avg_2top":{"this":99.99,"ly":94.43,"season_bl":93.91,"annual_bl":94.68,"fmt":"$","delta_ly":"+$5.56","delta_season":"+$6.08","delta_annual":"+$5.31"},"ps_avg_4top":{"this":166.1,"ly":171.5,"season_bl":157.14,"annual_bl":163.16,"fmt":"$","delta_ly":"-$5.40","delta_season":"+$8.96","delta_annual":"+$2.94"},"ps_bottle_2top":{"this":8.9,"ly":11.5,"season_bl":10.95,"annual_bl":11.31,"fmt":"%","delta_ly":"-2.6pp","delta_season":"-2.0pp","delta_annual":"-2.4pp"},"ps_bottle_4top":{"this":14.8,"ly":17.5,"season_bl":16.79,"annual_bl":18.42,"fmt":"%","delta_ly":"-2.7pp","delta_season":"-2.0pp","delta_annual":"-3.6pp"},"ps_dessert_2top":{"this":21.6,"ly":22.9,"season_bl":21.53,"annual_bl":20.34,"fmt":"%","delta_ly":"-1.3pp","delta_season":"+0.1pp","delta_annual":"+1.3pp"},"ps_dessert_4top":{"this":25.9,"ly":25.0,"season_bl":24.64,"annual_bl":26.78,"fmt":"%","delta_ly":"+0.9pp","delta_season":"+1.3pp","delta_annual":"-0.9pp"}}},{"date_range":"2026-07-14 \u2013 2026-07-19","week_key":"2026-W29","season":"Summer","n":326,"net":36435.23,"avg_check":111.76,"dinner_avg":121.33,"lunch_avg":84.2,"dinner_n":242,"lunch_n":84,"food_pct":64.1,"wine_pct":26.8,"liq_pct":7.1,"beer_pct":0.4,"na_pct":1.6,"pasta":27.5,"entree":35.8,"apps_snack":45.1,"dessert":18.5,"wine_any":69.4,"bottle":12.0,"glass":52.2,"flight":24.1,"cocktail":25.9,"specialty":16.0,"exact_net":37284.0,"exact_orders":330,"exact_guests":716,"exact_avg":112.98,"total_covers":666,"walkin_cover_pct":47.1,"booked_cover_pct":52.9,"avg_party":2.5,"cancel_n":36,"noshow_n":5,"pct_solo":8.3,"pct_2top":57.9,"pct_3top":16.9,"pct_4top":11.7,"pct_group":5.3,"ps_avg_2top":103.5,"ps_bottle_2top":10.7,"ps_dessert_2top":21.4,"ps_avg_4top":146.98,"ps_bottle_4top":11.9,"ps_dessert_4top":16.7,"same_week_ly":"2025-W29","comparisons":{"avg_check":{"this":111.76,"ly":104.51,"season_bl":102.0,"annual_bl":103.49,"fmt":"$","delta_ly":"+$7.25","delta_season":"+$9.76","delta_annual":"+$8.27"},"exact_avg":{"this":112.98,"ly":null,"season_bl":null,"annual_bl":null,"fmt":"$","delta_ly":null,"delta_season":null,"delta_annual":null},"dinner_avg":{"this":121.33,"ly":121.34,"season_bl":116.31,"annual_bl":117.73,"fmt":"$","delta_ly":"-$0.01","delta_season":"+$5.02","delta_annual":"+$3.60"},"lunch_avg":{"this":84.2,"ly":67.79,"season_bl":70.19,"annual_bl":72.81,"fmt":"$","delta_ly":"+$16.41","delta_season":"+$14.01","delta_annual":"+$11.39"},"exact_net":{"this":37284.0,"ly":null,"season_bl":null,"annual_bl":null,"fmt":"$","delta_ly":null,"delta_season":null,"delta_annual":null},"net":{"this":36435.23,"ly":42219.98,"season_bl":36392.63,"annual_bl":33664.03,"fmt":"$","delta_ly":"-$5784.75","delta_season":"+$42.60","delta_annual":"+$2771.20"},"n":{"this":326,"ly":404,"season_bl":356.51,"annual_bl":325.9,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"exact_guests":{"this":716,"ly":null,"season_bl":null,"annual_bl":null,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"dinner_n":{"this":242,"ly":277,"season_bl":246.45,"annual_bl":222.48,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"lunch_n":{"this":84,"ly":127,"season_bl":110.06,"annual_bl":103.42,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"food_pct":{"this":64.1,"ly":59.6,"season_bl":59.37,"annual_bl":58.51,"fmt":"%","delta_ly":"+4.5pp","delta_season":"+4.7pp","delta_annual":"+5.6pp"},"wine_pct":{"this":26.8,"ly":30.6,"season_bl":28.29,"annual_bl":29.86,"fmt":"%","delta_ly":"-3.8pp","delta_season":"-1.5pp","delta_annual":"-3.1pp"},"liq_pct":{"this":7.1,"ly":7.7,"season_bl":9.18,"annual_bl":8.59,"fmt":"%","delta_ly":"-0.6pp","delta_season":"-2.1pp","delta_annual":"-1.5pp"},"beer_pct":{"this":0.4,"ly":0.7,"season_bl":0.89,"annual_bl":0.82,"fmt":"%","delta_ly":"-0.3pp","delta_season":"-0.5pp","delta_annual":"-0.4pp"},"na_pct":{"this":1.6,"ly":1.4,"season_bl":1.98,"annual_bl":2.03,"fmt":"%","delta_ly":"+0.2pp","delta_season":"-0.4pp","delta_annual":"-0.4pp"},"pasta":{"this":27.5,"ly":23.8,"season_bl":40.26,"annual_bl":41.32,"fmt":"%","delta_ly":"+3.7pp","delta_season":"-12.8pp","delta_annual":"-13.8pp"},"entree":{"this":35.8,"ly":35.1,"season_bl":40.79,"annual_bl":41.48,"fmt":"%","delta_ly":"+0.7pp","delta_season":"-5.0pp","delta_annual":"-5.7pp"},"apps_snack":{"this":45.1,"ly":39.4,"season_bl":50.27,"annual_bl":51.02,"fmt":"%","delta_ly":"+5.7pp","delta_season":"-5.2pp","delta_annual":"-5.9pp"},"dessert":{"this":18.5,"ly":12.1,"season_bl":19.56,"annual_bl":19.23,"fmt":"%","delta_ly":"+6.4pp","delta_season":"-1.1pp","delta_annual":"-0.7pp"},"wine_any":{"this":69.4,"ly":70.8,"season_bl":67.33,"annual_bl":68.66,"fmt":"%","delta_ly":"-1.4pp","delta_season":"+2.1pp","delta_annual":"+0.7pp"},"bottle":{"this":12.0,"ly":12.4,"season_bl":12.34,"annual_bl":12.9,"fmt":"%","delta_ly":"-0.4pp","delta_season":"-0.3pp","delta_annual":"-0.9pp"},"glass":{"this":52.2,"ly":50.5,"season_bl":49.35,"annual_bl":50.46,"fmt":"%","delta_ly":"+1.7pp","delta_season":"+2.9pp","delta_annual":"+1.7pp"},"flight":{"this":24.1,"ly":27.0,"season_bl":24.99,"annual_bl":25.07,"fmt":"%","delta_ly":"-2.9pp","delta_season":"-0.9pp","delta_annual":"-1.0pp"},"cocktail":{"this":25.9,"ly":36.6,"season_bl":37.22,"annual_bl":34.55,"fmt":"%","delta_ly":"-10.7pp","delta_season":"-11.3pp","delta_annual":"-8.6pp"},"specialty":{"this":16.0,"ly":16.6,"season_bl":18.03,"annual_bl":17.27,"fmt":"%","delta_ly":"-0.6pp","delta_season":"-2.0pp","delta_annual":"-1.3pp"},"total_covers":{"this":666,"ly":779,"season_bl":906.2,"annual_bl":729.91,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"walkin_cover_pct":{"this":47.1,"ly":57.9,"season_bl":58.37,"annual_bl":54.01,"fmt":"%","delta_ly":"-10.8pp","delta_season":"-11.3pp","delta_annual":"-6.9pp"},"booked_cover_pct":{"this":52.9,"ly":42.1,"season_bl":41.63,"annual_bl":45.99,"fmt":"%","delta_ly":"+10.8pp","delta_season":"+11.3pp","delta_annual":"+6.9pp"},"avg_party":{"this":2.5,"ly":2.3,"season_bl":2.37,"annual_bl":2.39,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"cancel_n":{"this":36,"ly":39,"season_bl":41.05,"annual_bl":36.17,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"noshow_n":{"this":5,"ly":4,"season_bl":5.35,"annual_bl":5.4,"fmt":"n","delta_ly":null,"delta_season":null,"delta_annual":null},"pct_solo":{"this":8.3,"ly":9.7,"season_bl":10.01,"annual_bl":9.81,"fmt":"%","delta_ly":"-1.4pp","delta_season":"-1.7pp","delta_annual":"-1.5pp"},"pct_2top":{"this":57.9,"ly":71.1,"season_bl":65.24,"annual_bl":65.07,"fmt":"%","delta_ly":"-13.2pp","delta_season":"-7.3pp","delta_annual":"-7.2pp"},"pct_3top":{"this":16.9,"ly":6.2,"season_bl":10.97,"annual_bl":10.74,"fmt":"%","delta_ly":"+10.7pp","delta_season":"+5.9pp","delta_annual":"+6.2pp"},"pct_4top":{"this":11.7,"ly":9.4,"season_bl":9.73,"annual_bl":9.91,"fmt":"%","delta_ly":"+2.3pp","delta_season":"+2.0pp","delta_annual":"+1.8pp"},"pct_group":{"this":5.3,"ly":3.5,"season_bl":4.05,"annual_bl":4.47,"fmt":"%","delta_ly":"+1.8pp","delta_season":"+1.2pp","delta_annual":"+0.8pp"},"ps_avg_2top":{"this":103.5,"ly":105.48,"season_bl":93.91,"annual_bl":94.68,"fmt":"$","delta_ly":"-$1.98","delta_season":"+$9.59","delta_annual":"+$8.82"},"ps_avg_4top":{"this":146.98,"ly":141.71,"season_bl":157.14,"annual_bl":163.16,"fmt":"$","delta_ly":"+$5.27","delta_season":"-$10.16","delta_annual":"-$16.18"},"ps_bottle_2top":{"this":10.7,"ly":13.5,"season_bl":10.95,"annual_bl":11.31,"fmt":"%","delta_ly":"-2.8pp","delta_season":"-0.2pp","delta_annual":"-0.6pp"},"ps_bottle_4top":{"this":11.9,"ly":13.3,"season_bl":16.79,"annual_bl":18.42,"fmt":"%","delta_ly":"-1.4pp","delta_season":"-4.9pp","delta_annual":"-6.5pp"},"ps_dessert_2top":{"this":21.4,"ly":12.7,"season_bl":21.53,"annual_bl":20.34,"fmt":"%","delta_ly":"+8.7pp","delta_season":"-0.1pp","delta_annual":"+1.1pp"},"ps_dessert_4top":{"this":16.7,"ly":6.7,"season_bl":24.64,"annual_bl":26.78,"fmt":"%","delta_ly":"+10.0pp","delta_season":"-7.9pp","delta_annual":"-10.1pp"}}}];</script>
 <script>
-const METS = [["avg_check", "Avg check", "$", "#2F4734"], ["dinner_avg", "Dinner avg check", "$", "#2F4734"], ["lunch_avg", "Lunch avg check", "$", "#3d6a7a"], ["pasta", "Pasta %", "%", "#2F4734"], ["entree", "Entr\u00e9e %", "%", "#3d6a7a"], ["apps_snack", "App or snack %", "%", "#6b8e6f"], ["dessert", "Dessert (\u00e0 la carte) %", "%", "#a8632f"], ["wine_any", "Wine (any) %", "%", "#6B2227"], ["bottle", "Bottle attach %", "%", "#6B2227"], ["specialty", "Specialty cocktail %", "%", "#B08D2B"], ["cocktail", "Any cocktail %", "%", "#B08D2B"], ["food_pct", "Food % of revenue", "%", "#2F4734"], ["wine_pct", "Wine % of revenue", "%", "#6B2227"], ["liq_pct", "Liquor % of revenue", "%", "#B08D2B"]];
+const METS = [["avg_check", "Avg check", "$", "#2F4734", "Revenue"], ["dinner_avg", "Dinner avg check", "$", "#2F4734", "Revenue"], ["lunch_avg", "Lunch avg check", "$", "#3d6a7a", "Revenue"], ["net", "Net sales (modeled)", "$", "#2F4734", "Revenue"], ["n", "Dine-in checks", "n", "#6f6a5c", "Revenue"], ["dinner_n", "Dinner checks", "n", "#6f6a5c", "Revenue"], ["lunch_n", "Lunch checks", "n", "#6f6a5c", "Revenue"], ["food_pct", "Food % of revenue", "%", "#2F4734", "Revenue mix"], ["wine_pct", "Wine % of revenue", "%", "#6B2227", "Revenue mix"], ["liq_pct", "Liquor % of revenue", "%", "#B08D2B", "Revenue mix"], ["beer_pct", "Beer % of revenue", "%", "#a8632f", "Revenue mix"], ["na_pct", "NA/Zero proof % of rev", "%", "#6b8e6f", "Revenue mix"], ["pasta", "Pasta %", "%", "#2F4734", "Composition"], ["entree", "Entrée %", "%", "#3d6a7a", "Composition"], ["apps_snack", "App or snack %", "%", "#6b8e6f", "Composition"], ["dessert", "Dessert (à la carte) %", "%", "#a8632f", "Composition"], ["wine_any", "Wine (any) %", "%", "#6B2227", "Composition"], ["bottle", "Bottle attach %", "%", "#6B2227", "Composition"], ["glass", "Glass of wine %", "%", "#6B2227", "Composition"], ["flight", "Wine flight %", "%", "#6B2227", "Composition"], ["cocktail", "Any cocktail %", "%", "#B08D2B", "Composition"], ["specialty", "Specialty cocktail %", "%", "#B08D2B", "Composition"], ["total_covers", "Total covers", "n", "#3d6a7a", "Reservations"], ["walkin_cover_pct", "Walk-in covers %", "%", "#3d6a7a", "Reservations"], ["booked_cover_pct", "Booked covers %", "%", "#2F4734", "Reservations"], ["avg_party", "Avg party size", "n", "#3d6a7a", "Reservations"], ["cancel_n", "Cancellations", "n", "#8b1a1a", "Reservations"], ["noshow_n", "No-shows", "n", "#8b1a1a", "Reservations"], ["pct_solo", "Solo (1-top) %", "%", "#9a9584", "Table mix"], ["pct_2top", "2-top %", "%", "#2F4734", "Table mix"], ["pct_3top", "3-top %", "%", "#3d6a7a", "Table mix"], ["pct_4top", "4-top %", "%", "#B08D2B", "Table mix"], ["pct_group", "5+ group %", "%", "#6B2227", "Table mix"], ["ps_avg_2top", "Avg check — 2-tops", "$", "#2F4734", "Party size composition"], ["ps_avg_4top", "Avg check — 4-tops", "$", "#B08D2B", "Party size composition"], ["ps_bottle_2top", "Bottle attach — 2-tops", "%", "#6B2227", "Party size composition"], ["ps_bottle_4top", "Bottle attach — 4-tops", "%", "#6B2227", "Party size composition"], ["ps_dessert_2top", "Dessert % — 2-tops", "%", "#a8632f", "Party size composition"], ["ps_dessert_4top", "Dessert % — 4-tops", "%", "#a8632f", "Party size composition"]];
+const GROUPS = [["Revenue", ["avg_check", "dinner_avg", "lunch_avg", "net", "n", "dinner_n", "lunch_n"]], ["Revenue mix", ["food_pct", "wine_pct", "liq_pct", "beer_pct", "na_pct"]], ["Composition", ["pasta", "entree", "apps_snack", "dessert", "wine_any", "bottle", "glass", "flight", "cocktail", "specialty"]], ["Reservations", ["total_covers", "walkin_cover_pct", "booked_cover_pct", "avg_party", "cancel_n", "noshow_n"]], ["Table mix", ["pct_solo", "pct_2top", "pct_3top", "pct_4top", "pct_group"]], ["Party size composition", ["ps_avg_2top", "ps_avg_4top", "ps_bottle_2top", "ps_bottle_4top", "ps_dessert_2top", "ps_dessert_4top"]]];
 const HUNT="#2F4734",OX="#6B2227",GOLD="#B08D2B",GREY="#9a9584";
+const el=id=>document.getElementById(id);
 
-// ── DATA LOAD ────────────────────────────────────────────────────
-const BASE_URL = (()=>{
-  // Works on Vercel (relative paths) and locally (same directory)
-  const loc = window.location.href;
-  if(loc.includes('localhost') || loc.includes('127.0.0.1') || loc.startsWith('file'))
-    return './data/';
-  return './data/';
-})();
-
-async function loadData(){
-  try{
-    const [blRes, histRes] = await Promise.all([
-      fetch(BASE_URL+'scorecard_baseline.json'),
-      fetch(BASE_URL+'scorecard_history.json'),
-    ]);
-    if(!blRes.ok||!histRes.ok) throw new Error("Failed to fetch data files");
-    const BL   = await blRes.json();
-    const HIST = await histRes.json();
-    const LW   = HIST.length ? HIST[HIST.length-1] : null;
-    return {BL, HIST, LW};
-  } catch(err){
-    const tried = BASE_URL + 'scorecard_baseline.json';
-    document.getElementById('root').innerHTML=`
-      <div class="note" style="margin-top:16px">
-        <b>Could not load data files.</b><br><br>
-        Tried to fetch: <code>${tried}</code><br>
-        Error: <b>${err.message}</b><br><br>
-        <b>If this is on Vercel:</b> check that <code>data/scorecard_baseline.json</code>
-        and <code>data/scorecard_history.json</code> were committed to your repo and
-        that the Vercel Root Directory is set to <code>/</code> (not a subfolder).<br><br>
-        <b>If running locally:</b> open a terminal in this folder and run:<br>
-        <code>python -m http.server 8000</code><br>
-        Then open <a href="http://localhost:8000">http://localhost:8000</a>
-      </div>`;
-    return null;
-  }
-}
-
-// ── HELPERS ──────────────────────────────────────────────────────
 function fv(v,fmt){
   if(v==null)return'—';
-  return fmt==='$'?'$'+parseFloat(v).toFixed(2):parseFloat(v).toFixed(1)+'%';
+  if(fmt==='$')return '$'+parseFloat(v).toFixed(2);
+  if(fmt==='n')return Number.isInteger(v)?String(v):parseFloat(v).toFixed(2);
+  return parseFloat(v).toFixed(1)+'%';
 }
-function dclass(d){
-  if(!d||d==='—')return'd-neu';
-  return d.startsWith('-')||d.startsWith('-$')?'d-dn':'d-up';
-}
-function el(id){return document.getElementById(id);}
+function dclass(d){if(!d||d==='—')return'd-neu';return (d.startsWith('-'))?'d-dn':'d-up';}
 
-// ── MAIN RENDER ──────────────────────────────────────────────────
-async function init(){
-  const data = await loadData();
-  if(!data) return;
-  const {BL, HIST, LW} = data;
+function init(){
+  const BL=window.__BL__, HIST=window.__HI__;
+  const LW=HIST.length?HIST[HIST.length-1]:null;
 
-  // Build the full UI
-  document.getElementById('root').innerHTML = `
+  el('root').innerHTML=`
     <div id="banner"></div>
-
     <h2 class="sec">Latest Week vs Baselines</h2>
-    <p class="lede">15 metrics compared against the same week last year, the current season's
-    average, and the full Jun 2025–Jun 2026 annual baseline.
-    <b style="color:var(--up)">Green</b> = above baseline &nbsp;·&nbsp;
-    <b style="color:var(--dn)">Red</b> = below baseline.</p>
-
-    <div class="card" style="overflow-x:auto" id="sc_table_wrap">
-      <div class="loading" style="padding:30px"><div class="spinner"></div></div>
-    </div>
-
+    <p class="lede">All 36 metrics vs the same week last year, the current season average,
+    and the full Jun 2025–Jun 2026 annual baseline.
+    <b style="color:var(--up)">Green</b> = above baseline · <b style="color:var(--dn)">Red</b> = below.</p>
+    <div class="ctrl"><label>Week:</label><select id="week_sel"></select></div>
+    <div class="card" style="overflow-x:auto" id="sc_table_wrap"></div>
     <div class="two">
-      <div class="card">
-        <div class="card-title">vs Same week last year</div>
-        <div id="ly_mini"></div>
-      </div>
-      <div class="card">
-        <div class="card-title">vs Season baseline (${LW?LW.season:'—'})</div>
-        <div id="seas_mini"></div>
-      </div>
+      <div class="card"><div class="card-title">Top movers vs same week last year</div><div id="ly_mini"></div></div>
+      <div class="card"><div class="card-title" id="seas_title">Top movers vs season baseline</div><div id="seas_mini"></div></div>
     </div>
-
     <h2 class="sec">Trend — Any Metric Over Time</h2>
-    <p class="lede">All ${HIST.length} ingested weeks. Hover a point for full details.</p>
+    <p class="lede">All ${HIST.length} ingested week(s). Hover a point for details. Gold dashed line = baseline.</p>
     <div class="ctrl">
-      <label>Metric:</label>
-      <select id="trend_met"></select>
+      <label>Metric:</label><select id="trend_met"></select>
       <label style="margin-left:6px">Baseline:</label>
-      <select id="trend_bl">
-        <option value="season">Season baseline</option>
-        <option value="annual">Annual baseline</option>
-        <option value="none">None</option>
-      </select>
+      <select id="trend_bl"><option value="annual">Annual baseline</option><option value="season">Season baseline (avg)</option><option value="none">None</option></select>
     </div>
-    <div class="card">
-      <svg id="trend_svg" viewBox="0 0 860 240" width="100%"></svg>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:8px" id="trend_tip">
-        Hover a point to see that week's details</div>
-    </div>
-
+    <div class="card"><svg id="trend_svg" viewBox="0 0 900 240" width="100%"></svg>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:8px" id="trend_tip">Hover a point</div></div>
     <h2 class="sec">Week-by-Week History</h2>
-    <p class="lede">Every ingested week. Pick a metric — darker cell = higher value.
-    Click any cell to load that week into the scorecard above.</p>
-    <div class="ctrl">
-      <label>Metric:</label>
-      <select id="hist_met"></select>
-    </div>
+    <p class="lede">Every ingested week. Darker cell = higher value. Click a cell to load that week above.</p>
+    <div class="ctrl"><label>Metric:</label><select id="hist_met"></select></div>
     <div class="card" style="overflow-x:auto"><div id="hist_grid"></div></div>
-
-    <h2 class="sec" style="margin-top:28px">How to Update</h2>
+    <h2 class="sec" style="margin-top:28px">How Updates Work</h2>
     <div class="card" style="font-size:13px;color:var(--muted)">
-      <ol style="margin:0;padding-left:18px;line-height:2">
-        <li>Export <b>ItemSelectionDetails</b> + <b>DiscountDetails</b> from Toast for the week</li>
-        <li>Drop files in <code>/mnt/user-data/uploads/</code> alongside <code>All_levels.csv</code></li>
-        <li>Run: <code>python weekly_ingest.py --start YYYY-MM-DD --end YYYY-MM-DD</code></li>
-        <li>Copy <code>runs/scorecard_history.json</code> → <code>data/scorecard_history.json</code> in this repo</li>
-        <li><code>git add data/scorecard_history.json && git commit -m "Week of …" && git push</code></li>
-        <li>Vercel deploys in ~20 seconds — everyone with the URL sees the update</li>
-      </ol>
-    </div>
-  `;
+      This dashboard reads its data on every visit. When a new week is ingested and
+      redeployed, everyone with the URL sees it automatically — no new link.</div>`;
 
-  // Select the active week (default = latest)
-  let activeWk = LW;
+  let activeWk=LW;
+  const wsel=el('week_sel');
+  wsel.innerHTML=HIST.map((w,i)=>`<option value="${i}"${i===HIST.length-1?' selected':''}>${w.date_range||w.week_key}</option>`).join('');
+  wsel.onchange=()=>{activeWk=HIST[+wsel.value]; renderAll(activeWk); drawGrid();};
 
-  function renderAll(wk){
-    activeWk = wk;
-    renderBanner(wk);
-    renderTable(wk, BL);
-    renderMini('ly_mini',   wk, 'ly');
-    renderMini('seas_mini', wk, 'season_bl');
-  }
+  function renderAll(wk){activeWk=wk;renderBanner(wk);renderTable(wk);
+    renderMini('ly_mini',wk,'delta_ly');renderMini('seas_mini',wk,'delta_season');
+    el('seas_title').textContent='Top movers vs season baseline ('+(wk?wk.season:'—')+')';}
 
-  // ── BANNER ──────────────────────────────────────────────────────
   function renderBanner(wk){
-    if(!wk){el('banner').innerHTML='<div class="note">No weeks ingested yet — run weekly_ingest.py first.</div>';return;}
-    el('banner').innerHTML=`<div class="note">
-      <b>${wk.date_range || wk.week_key}</b> &nbsp;·&nbsp;
-      ${wk.n} checks &nbsp;·&nbsp;
-      ${wk.net ? '$'+(wk.net/1000).toFixed(1)+'K net (modeled)' : ''} &nbsp;·&nbsp;
-      Avg check <b>$${wk.avg_check}</b> &nbsp;·&nbsp;
-      Season: ${wk.season} &nbsp;·&nbsp;
-      Same week LY: ${wk.same_week_ly}
-    </div>`;
-  }
+    if(!wk){el('banner').innerHTML='<div class="note">No weeks ingested yet.</div>';return;}
+    el('banner').innerHTML=`<div class="note"><b>${wk.date_range||wk.week_key}</b> · ${wk.n} checks ·
+      ${wk.net?'$'+(wk.net/1000).toFixed(1)+'K net (modeled)':''} ·
+      Avg check <b>$${wk.avg_check}</b> · Season: ${wk.season} · Same week LY: ${wk.same_week_ly||'—'}</div>`;}
 
-  // ── SCORECARD TABLE ────────────────────────────────────────────
-  function renderTable(wk, BL){
+  function renderTable(wk){
     if(!wk){el('sc_table_wrap').innerHTML='<p style="color:var(--muted);padding:12px">No week loaded.</p>';return;}
-    const cmp = wk.comparisons || {};
-    let t=`<table class="sc-table"><thead>
-      <tr>
-        <th>Metric</th>
-        <th>This week</th>
-        <th>LY same wk<br><span style="font-weight:400;font-size:10px">${wk.same_week_ly||'—'}</span></th>
-        <th>Δ LY</th>
-        <th>Season BL<br><span style="font-weight:400;font-size:10px">${wk.season||''}</span></th>
-        <th>Δ Season</th>
-        <th>Annual BL</th>
-        <th>Δ Annual</th>
-      </tr></thead><tbody>`;
-    METS.forEach(([key,lbl,fmt,col])=>{
-      const c = cmp[key]||{};
-      const dly=c.delta_ly, dse=c.delta_season, dann=c.delta_annual;
-      t+=`<tr>
-        <td><span class="dot" style="background:${col}"></span>${lbl}</td>
-        <td><b>${fv(c.this,fmt)}</b></td>
-        <td>${fv(c.ly,fmt)}</td>
-        <td class="${dclass(dly)}">${dly||'—'}</td>
-        <td>${fv(c.season_bl,fmt)}</td>
-        <td class="${dclass(dse)}">${dse||'—'}</td>
-        <td>${fv(c.annual_bl,fmt)}</td>
-        <td class="${dclass(dann)}">${dann||'—'}</td>
-      </tr>`;
-    });
-    el('sc_table_wrap').innerHTML=t+'</tbody></table>';
-  }
-
-  // ── MINI COMPARE ───────────────────────────────────────────────
-  function renderMini(elid, wk, bl_key){
-    if(!wk){el(elid).innerHTML='<span style="color:var(--muted)">—</span>';return;}
     const cmp=wk.comparisons||{};
-    const rows=METS.slice(0,9).map(([key,lbl,fmt,col])=>{
-      const c=cmp[key]||{};
-      const a=c.this; const d=bl_key==='ly'?c.delta_ly:c.delta_season;
-      return`<div class="metric-row">
-        <span><span class="dot" style="background:${col}"></span>${lbl}</span>
-        <span style="display:flex;align-items:center;gap:8px">
-          <span>${fv(a,fmt)}</span>
-          <span class="${dclass(d)}" style="font-size:11.5px;min-width:50px;text-align:right">${d||'—'}</span>
-        </span>
-      </div>`;}).join('');
-    el(elid).innerHTML=rows;
-  }
+    let t=`<table class="sc-table"><thead><tr><th>Metric</th><th>This week</th>
+      <th>LY same wk<br><span style="font-weight:400;font-size:10px">${wk.same_week_ly||'—'}</span></th>
+      <th>Δ LY</th><th>Season BL</th><th>Δ Season</th><th>Annual BL</th><th>Δ Annual</th></tr></thead><tbody>`;
+    GROUPS.forEach(([gname,keys])=>{
+      const rows=keys.filter(k=>cmp[k]); if(!rows.length)return;
+      t+=`<tr class="sc-grouprow"><td colspan="8">${gname}</td></tr>`;
+      rows.forEach(key=>{
+        const m=METS.find(x=>x[0]===key)||[key,key,'%','#2F4734'];
+        const c=cmp[key]||{}; const fmt=m[2]; const col=m[3];
+        const dly=c.delta_ly,dse=c.delta_season,dann=c.delta_annual;
+        t+=`<tr><td><span class="dot" style="background:${col}"></span>${m[1]}</td>
+          <td><b>${fv(c.this,fmt)}</b></td><td>${fv(c.ly,fmt)}</td>
+          <td class="${dclass(dly)}">${dly||'—'}</td><td>${fv(c.season_bl,fmt)}</td>
+          <td class="${dclass(dse)}">${dse||'—'}</td><td>${fv(c.annual_bl,fmt)}</td>
+          <td class="${dclass(dann)}">${dann||'—'}</td></tr>`;});});
+    el('sc_table_wrap').innerHTML=t+'</tbody></table>';}
 
-  // ── TREND CHART ────────────────────────────────────────────────
-  const trend_met_sel = el('trend_met');
-  const trend_bl_sel  = el('trend_bl');
-  trend_met_sel.innerHTML = METS.map(([k,l])=>`<option value="${k}">${l}</option>`).join('');
-  trend_met_sel.value = METS[0][0];
+  function renderMini(elid,wk,dkey){
+    if(!wk){el(elid).innerHTML='—';return;}
+    const cmp=wk.comparisons||{};
+    const rows=Object.keys(cmp).map(key=>{
+      const c=cmp[key]; const d=c[dkey];
+      if(!d||d==='—')return null;
+      const mag=Math.abs(parseFloat(d.replace(/[^0-9.-]/g,'')));
+      const m=METS.find(x=>x[0]===key);
+      return m?{key,lbl:m[1],fmt:m[2],col:m[3],d,mag,this:c.this}:null;
+    }).filter(Boolean).sort((a,b)=>b.mag-a.mag).slice(0,8);
+    if(!rows.length){el(elid).innerHTML='<span style="color:var(--muted)">No baseline yet</span>';return;}
+    el(elid).innerHTML=rows.map(r=>`<div class="metric-row">
+      <span><span class="dot" style="background:${r.col}"></span>${r.lbl}</span>
+      <span style="display:flex;align-items:center;gap:8px"><span>${fv(r.this,r.fmt)}</span>
+        <span class="${dclass(r.d)}" style="font-size:11.5px;min-width:54px;text-align:right">${r.d}</span></span></div>`).join('');}
 
+  const tmet=el('trend_met'), tbl=el('trend_bl');
+  tmet.innerHTML=METS.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('');
+  tmet.value=METS[0][0];
   function drawTrend(){
-    const key   = trend_met_sel.value;
-    const blkey = trend_bl_sel.value;
-    const met   = METS.find(m=>m[0]===key)||METS[0];
-    const fmt   = met[2]; const col = met[3];
-    const W=860,H=240,L=52,R=22,T=14,B=36;
-    const weeks = HIST.filter(w=>w[key]!=null)
-                      .map(w=>({wk:w.week_key,v:w[key],label:w.date_range||w.week_key,n:w.n,season:w.season}));
-    if(!weeks.length){
-      el('trend_svg').innerHTML='<text x="430" y="120" text-anchor="middle" font-size="13" fill="#9a9584">No data yet</text>';
-      return;
-    }
-    const vals=weeks.map(w=>w.v);
-    const lo=Math.min(...vals),hi=Math.max(...vals),pad=(hi-lo)*0.14||0.5;
-    const ylo=lo-pad, yhi=hi+pad;
-    const xi=(i)=>L+i*(W-L-R)/(Math.max(weeks.length-1,1));
-    const y=(v)=>H-B-(v-ylo)/(yhi-ylo)*(H-T-B);
-    let g='';
-
-    // baseline
+    const key=tmet.value, blkey=tbl.value;
+    const m=METS.find(x=>x[0]===key)||METS[0]; const fmt=m[2], col=m[3];
+    const W=900,H=240,L=54,R=64,T=14,B=36;
+    const weeks=HIST.filter(w=>w[key]!=null).map(w=>({wk:w.week_key,v:w[key],label:w.date_range||w.week_key,n:w.n,season:w.season}));
+    if(!weeks.length){el('trend_svg').innerHTML='<text x="450" y="120" text-anchor="middle" font-size="13" fill="#9a9584">No data for this metric yet</text>';return;}
+    const vals=weeks.map(w=>w.v); let lo=Math.min(...vals),hi=Math.max(...vals);
     let blv=null;
-    if(blkey==='annual'&&BL.baselines&&BL.baselines.annual) blv=BL.baselines.annual[key];
-    if(blkey==='season'&&BL.baselines&&BL.baselines.by_season){
-      // average across seasons weighted by n
-      const svs=Object.values(BL.baselines.by_season).map(s=>s[key]).filter(v=>v!=null);
-      blv=svs.length?svs.reduce((a,b)=>a+b,0)/svs.length:null;
-    }
-    if(blv!=null){
-      const by=y(blv).toFixed(1);
-      g+=`<line x1="${L}" y1="${by}" x2="${W-R}" y2="${by}" stroke="${GOLD}" stroke-width="1.5" stroke-dasharray="5 3" opacity=".75"/>`;
-      g+=`<text x="${W-R+3}" y="${parseFloat(by)+3}" font-size="9" fill="${GOLD}">${fv(blv,fmt)}</text>`;
-    }
-
-    // grid
-    for(let i=0;i<=4;i++){
-      const v=ylo+(yhi-ylo)*i/4; const yy=y(v).toFixed(1);
+    if(blkey==='annual'&&BL.annual)blv=BL.annual[key];
+    if(blkey==='season'&&BL.by_season){const sv=Object.values(BL.by_season).map(s=>s[key]).filter(v=>v!=null);blv=sv.length?sv.reduce((a,b)=>a+b,0)/sv.length:null;}
+    if(blv!=null){lo=Math.min(lo,blv);hi=Math.max(hi,blv);}
+    const pad=(hi-lo)*0.14||0.5, ylo=lo-pad, yhi=hi+pad;
+    const xi=i=>L+i*(W-L-R)/Math.max(weeks.length-1,1);
+    const y=v=>H-B-(v-ylo)/(yhi-ylo)*(H-T-B);
+    let g='';
+    if(blv!=null){const by=y(blv).toFixed(1);
+      g+=`<line x1="${L}" y1="${by}" x2="${W-R}" y2="${by}" stroke="${GOLD}" stroke-width="1.5" stroke-dasharray="5 3" opacity=".8"/>`;
+      g+=`<text x="${W-R+4}" y="${+by+3}" font-size="9.5" fill="${GOLD}" font-weight="700">${fv(blv,fmt)}</text>`;}
+    for(let i=0;i<=4;i++){const v=ylo+(yhi-ylo)*i/4,yy=y(v).toFixed(1);
       g+=`<line x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}" stroke="#e6ddc7"/>`;
-      g+=`<text x="${L-4}" y="${parseFloat(yy)+3}" text-anchor="end" font-size="9" fill="${GREY}">${fmt==='$'?'$'+v.toFixed(0):v.toFixed(1)+'%'}</text>`;
-    }
-
-    // area
+      g+=`<text x="${L-5}" y="${+yy+3}" text-anchor="end" font-size="9" fill="${GREY}">${fmt==='$'?'$'+v.toFixed(0):fmt==='n'?v.toFixed(0):v.toFixed(1)+'%'}</text>`;}
     const path=weeks.map((w,i)=>`${i?'L':'M'}${xi(i).toFixed(1)},${y(w.v).toFixed(1)}`).join(' ');
     const ay=y(ylo).toFixed(1);
     g+=`<path d="${path} L${xi(weeks.length-1)},${ay} L${xi(0)},${ay} Z" fill="${col}" opacity=".10"/>`;
     g+=`<path d="${path}" fill="none" stroke="${col}" stroke-width="2"/>`;
-
-    // points + x labels
-    weeks.forEach((w,i)=>{
-      g+=`<circle cx="${xi(i).toFixed(1)}" cy="${y(w.v).toFixed(1)}" r="4" fill="${col}" opacity=".9" style="cursor:pointer"/>`;
-      if(i%4===0||i===weeks.length-1){
-        const parts=w.wk.split('-W');
-        g+=`<text x="${xi(i).toFixed(1)}" y="${H-B+14}" text-anchor="middle" font-size="8.5" fill="${GREY}">W${parts[1]}'${parts[0].slice(2)}</text>`;
-      }
-    });
-
+    weeks.forEach((w,i)=>{g+=`<circle cx="${xi(i).toFixed(1)}" cy="${y(w.v).toFixed(1)}" r="4" fill="${col}" opacity=".9"/>`;
+      if(i%4===0||i===weeks.length-1){const p=w.wk.split('-W');
+        g+=`<text x="${xi(i).toFixed(1)}" y="${H-B+14}" text-anchor="middle" font-size="8.5" fill="${GREY}">W${p[1]}'${p[0].slice(2)}</text>`;}});
     const svg=el('trend_svg'); svg.innerHTML=g;
-    svg.onmousemove=e=>{
-      const rect=svg.getBoundingClientRect();
-      const px=(e.clientX-rect.left)*W/rect.width;
-      const step=(W-L-R)/Math.max(weeks.length-1,1);
-      const i=Math.max(0,Math.min(weeks.length-1,Math.round((px-L)/step)));
-      const w=weeks[i];
-      el('trend_tip').innerHTML=`<b>${w.label}</b> · ${met[1]}: <b style="color:${col}">${fv(w.v,fmt)}</b> · ${w.n} checks · ${w.season}`;
-    };
-  }
-  trend_met_sel.onchange=drawTrend; trend_bl_sel.onchange=drawTrend; drawTrend();
+    svg.onmousemove=e=>{const rect=svg.getBoundingClientRect();const px=(e.clientX-rect.left)*W/rect.width;
+      const step=(W-L-R)/Math.max(weeks.length-1,1);const i=Math.max(0,Math.min(weeks.length-1,Math.round((px-L)/step)));
+      const w=weeks[i];el('trend_tip').innerHTML=`<b>${w.label}</b> · ${m[1]}: <b style="color:${col}">${fv(w.v,fmt)}</b> · ${w.n} checks · ${w.season}`;};}
+  tmet.onchange=drawTrend; tbl.onchange=drawTrend; drawTrend();
 
-  // ── HISTORY GRID ───────────────────────────────────────────────
-  const hist_met_sel=el('hist_met');
-  hist_met_sel.innerHTML=METS.map(([k,l])=>`<option value="${k}">${l}</option>`).join('');
-  hist_met_sel.value=METS[0][0];
-
+  const hmet=el('hist_met');
+  hmet.innerHTML=METS.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('');
+  hmet.value=METS[0][0];
   function drawGrid(){
-    const key=hist_met_sel.value;
-    const met=METS.find(m=>m[0]===key)||METS[0];
-    const fmt=met[2];
+    const key=hmet.value; const m=METS.find(x=>x[0]===key)||METS[0]; const fmt=m[2];
     const weeks=HIST.filter(w=>w[key]!=null);
-    if(!weeks.length){el('hist_grid').innerHTML='<p style="color:var(--muted)">No history yet.</p>';return;}
-    const vals=weeks.map(w=>w[key]);
-    const lo=Math.min(...vals),hi=Math.max(...vals);
-    const byYear={};
-    weeks.forEach(w=>{const yr=w.week_key.split('-W')[0];(byYear[yr]=byYear[yr]||[]).push(w);});
-
+    if(!weeks.length){el('hist_grid').innerHTML='<p style="color:var(--muted)">No history for this metric yet.</p>';return;}
+    const vals=weeks.map(w=>w[key]); const lo=Math.min(...vals),hi=Math.max(...vals);
+    const byYear={}; weeks.forEach(w=>{const yr=w.week_key.split('-W')[0];(byYear[yr]=byYear[yr]||[]).push(w);});
     let t=`<table class="hist-table" style="width:max-content">`;
     Object.keys(byYear).sort().forEach(yr=>{
-      const wks=byYear[yr];
       t+=`<tr><td style="font-weight:700;background:var(--alt);white-space:nowrap;padding:5px 10px">${yr}</td>`;
-      wks.forEach(w=>{
-        const v=w[key]; const heat=(v-lo)/(hi-lo||1);
-        const bg=`rgba(47,71,52,${(0.06+heat*0.72).toFixed(2)})`;
-        const fg=heat>0.55?'#fff':'var(--ink)';
-        const wnum=w.week_key.split('-W')[1];
-        const isActive=activeWk&&activeWk.week_key===w.week_key;
-        t+=`<td onclick="loadWeek('${w.week_key}')"
-          title="${w.date_range||w.week_key}: ${fv(v,fmt)}"
-          style="background:${bg};color:${fg};cursor:pointer;
-            ${isActive?'outline:2px solid var(--gold);outline-offset:-2px':''}">
-          <div style="font-size:9px;opacity:.7">W${wnum}</div>
-          <div style="font-weight:700">${fv(v,fmt)}</div>
-        </td>`;});
-      t+=`</tr>`;
-    });
-    el('hist_grid').innerHTML=t+'</table>';
-  }
-  hist_met_sel.onchange=drawGrid; drawGrid();
+      byYear[yr].forEach(w=>{const v=w[key];const heat=(v-lo)/(hi-lo||1);
+        const bg=`rgba(47,71,52,${(0.06+heat*0.72).toFixed(2)})`;const fg=heat>0.55?'#fff':'var(--ink)';
+        const wn=w.week_key.split('-W')[1];const act=activeWk&&activeWk.week_key===w.week_key;
+        t+=`<td onclick="loadWeek('${w.week_key}')" title="${w.date_range||w.week_key}: ${fv(v,fmt)}"
+          style="background:${bg};color:${fg};cursor:pointer;${act?'outline:2px solid var(--gold);outline-offset:-2px':''}">
+          <div style="font-size:9px;opacity:.7">W${wn}</div><div style="font-weight:700">${fv(v,fmt)}</div></td>`;});
+      t+=`</tr>`;});
+    el('hist_grid').innerHTML=t+'</table>';}
+  hmet.onchange=drawGrid; drawGrid();
 
-  // Week click handler
-  window.loadWeek=function(wk_key){
-    const wk=HIST.find(w=>w.week_key===wk_key);
-    if(wk){ renderAll(wk); drawGrid(); window.scrollTo(0,0); }
-  };
-
-  // Initial render
+  window.loadWeek=wk_key=>{const wk=HIST.find(w=>w.week_key===wk_key);
+    if(wk){activeWk=wk;wsel.value=HIST.indexOf(wk);renderAll(wk);drawGrid();window.scrollTo(0,0);}};
   renderAll(LW);
 }
-
 init();
 </script>

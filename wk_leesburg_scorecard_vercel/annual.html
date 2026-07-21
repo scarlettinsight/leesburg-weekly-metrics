@@ -1,0 +1,619 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>WK Leesburg · Analytics</title>
+<style>
+:root{
+  --hunt:#2F4734;--ox:#6B2227;--gold:#B08D2B;--parch:#F4EEE1;
+  --ink:#1E1E1E;--line:#d8cdb6;--card:#fbf7ee;--muted:#6f6a5c;
+  --alt:#f3ede0;--blue:#3d6a7a;--clay:#a8632f;--sage:#6b8e6f;
+  --r:10px;--shadow:0 2px 8px rgba(0,0,0,.10);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--parch);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:15px;line-height:1.45;padding-bottom:72px}
+h1,h2,h3,.serif{font-family:Georgia,serif}
+
+/* ── TOP BAR ── */
+.topbar{background:var(--hunt);padding:14px 16px 10px;position:sticky;top:0;z-index:50}
+.topbar-row{display:flex;align-items:baseline;justify-content:space-between}
+.topbar b{font-family:Georgia;font-size:17px;color:#fff;letter-spacing:-.2px}
+.topbar span{font-size:11px;color:#adc4ad}
+.section-title{font-family:Georgia;font-size:20px;font-weight:700;
+  color:var(--hunt);margin:0 0 2px;padding-top:2px}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:var(--hunt);display:flex;overflow-x:auto;
+  scrollbar-width:none;border-top:2px solid rgba(255,255,255,.12)}
+.bnav::-webkit-scrollbar{display:none}
+.bnav-item{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;
+  padding:8px 14px 10px;cursor:pointer;opacity:.55;transition:opacity .15s;
+  border:none;background:transparent;color:#fff;font:inherit;font-size:10px;gap:3px}
+.bnav-item .ico{font-size:18px;line-height:1}
+.bnav-item.on{opacity:1;border-top:2px solid var(--gold);margin-top:-2px}
+
+/* ── LAYOUT ── */
+.page{display:none;padding:16px 14px 20px}
+.page.on{display:block}
+.lede{color:var(--muted);font-size:13px;margin:4px 0 14px;line-height:1.5}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);padding:14px;margin-bottom:12px;
+  box-shadow:var(--shadow)}
+.card-title{font-family:Georgia;font-size:14px;font-weight:700;
+  color:var(--hunt);margin:0 0 10px}
+.note{background:#fff6ec;border:1px solid var(--gold);border-left:4px solid var(--hunt);
+  padding:9px 12px;font-size:12.5px;color:#4a463c;border-radius:0 var(--r) var(--r) 0;
+  margin:10px 0}
+
+/* ── KPI GRID ── */
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.kbox{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px 10px;text-align:center;box-shadow:var(--shadow)}
+.kbox .k{font-family:Georgia;font-size:22px;font-weight:700;
+  color:var(--hunt);line-height:1.1}
+.kbox .l{font-size:10.5px;color:var(--muted);margin-top:3px}
+.kbox.hi{background:rgba(47,71,52,.08);border-color:rgba(47,71,52,.3)}
+.kbox.warn .k{color:var(--ox)}
+
+/* ── HORIZONTAL BAR ── */
+.hbar{margin:5px 0}
+.hbar-label{display:flex;justify-content:space-between;font-size:12.5px;
+  margin-bottom:3px;font-weight:600}
+.hbar-track{background:var(--line);border-radius:3px;height:22px;position:relative;overflow:hidden}
+.hbar-fill{position:absolute;top:0;left:0;height:100%;border-radius:3px;
+  display:flex;align-items:center;padding-left:8px;
+  font-size:11px;font-weight:700;color:#fff;white-space:nowrap;
+  transition:width .4s ease}
+
+/* ── STACKED BAR (100%) ── */
+.sbar{display:flex;height:28px;border-radius:4px;overflow:hidden;margin:4px 0}
+.sbar-seg{display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:#fff;transition:width .3s}
+.sbar-label{font-size:12px;font-weight:700;color:var(--muted);
+  margin-bottom:4px;margin-top:10px}
+
+/* ── TABLES ── */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--line)}
+th{background:var(--hunt);color:#f3efe3;font-size:11px;font-weight:600;
+  position:sticky;top:0}
+td:first-child,th:first-child{text-align:left;font-weight:700;
+  position:sticky;left:0;background:var(--card);z-index:2}
+th:first-child{background:var(--hunt);z-index:3}
+tr:nth-child(even) td{background:var(--alt)}
+tr:nth-child(even) td:first-child{background:var(--alt)}
+.heat-hi{background:rgba(47,71,52,.22)!important;font-weight:700}
+.heat-lo{color:var(--muted)}
+
+/* ── SELECTORS ── */
+select{font:inherit;font-size:13px;padding:6px 10px;
+  border:1px solid var(--line);border-radius:6px;
+  background:var(--card);color:var(--ink);width:100%;margin-bottom:10px}
+.toggle{display:flex;background:var(--line);border-radius:20px;padding:2px;margin-bottom:12px}
+.toggle button{flex:1;font:inherit;font-size:12px;font-weight:600;padding:6px;
+  border:none;border-radius:18px;background:transparent;color:var(--muted);cursor:pointer}
+.toggle button.on{background:var(--hunt);color:#fff}
+
+/* ── PROSE BROWSER ── */
+.prose-card{background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);padding:12px 14px;margin-bottom:8px}
+.prose-label{font-family:Georgia;font-weight:700;color:var(--hunt);font-size:13px}
+.prose-text{font-size:13px;color:var(--ink);margin-top:4px;line-height:1.55}
+
+/* ── SVG CHARTS ── */
+svg{display:block;width:100%;overflow:visible}
+.chart-wrap{position:relative;overflow:visible}
+
+/* ── LEGEND ── */
+.legend{display:flex;flex-wrap:wrap;gap:8px;font-size:11.5px;
+  color:var(--muted);margin-top:8px}
+.legend span{display:flex;align-items:center;gap:4px}
+.sw{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* ── TOUCH TOOLTIP ── */
+#tip{display:none;position:fixed;z-index:100;background:var(--hunt);color:#fff;
+  border-radius:8px;padding:10px 13px;font-size:12px;
+  max-width:220px;box-shadow:0 4px 16px rgba(0,0,0,.3);pointer-events:none}
+
+/* ── DELTA ── */
+.pos{color:var(--hunt);font-weight:700}
+.neg{color:var(--ox);font-weight:700}
+</style>
+
+<div class="topbar">
+  <div class="topbar-row">
+    <b>Wine Kitchen · Leesburg</b>
+    <span>Jun 2025 – Jun 2026</span>
+  </div>
+</div>
+<div id="tip"></div>
+
+<div class="page" id="pg_ov" role="tabpanel"></div><div class="page" id="pg_ac" role="tabpanel"></div><div class="page" id="pg_cx" role="tabpanel"></div><div class="page" id="pg_des" role="tabpanel"></div><div class="page" id="pg_tod" role="tabpanel"></div><div class="page" id="pg_ps" role="tabpanel"></div><div class="page" id="pg_tm" role="tabpanel"></div><div class="page" id="pg_sr" role="tabpanel"></div><div class="page" id="pg_sl" role="tabpanel"></div>
+
+<nav class="bnav" role="tablist">
+<button class="bnav-item" data-pg="ov" role="tab" aria-label="Overview"><span class="ico">📊</span>Overview</button><button class="bnav-item" data-pg="ac" role="tab" aria-label="Avg Check"><span class="ico">💵</span>Avg Check</button><button class="bnav-item" data-pg="cx" role="tab" aria-label="Composition"><span class="ico">🍽️</span>Composition</button><button class="bnav-item" data-pg="des" role="tab" aria-label="Dessert"><span class="ico">🍮</span>Dessert</button><button class="bnav-item" data-pg="tod" role="tab" aria-label="Time of Day"><span class="ico">🕐</span>Time of Day</button><button class="bnav-item" data-pg="ps" role="tab" aria-label="Party Size"><span class="ico">👥</span>Party Size</button><button class="bnav-item" data-pg="tm" role="tab" aria-label="Table Mix"><span class="ico">🪑</span>Table Mix</button><button class="bnav-item" data-pg="sr" role="tab" aria-label="Reservations"><span class="ico">📅</span>Reservations</button><button class="bnav-item" data-pg="sl" role="tab" aria-label="Slot Browser"><span class="ico">📋</span>Slot Browser</button>
+</nav>
+
+<script>
+const D={"kpi": {"net": 1929437.88, "orders": 18428, "guests": 39200, "avg_check": 103.67, "per_guest": 49.22, "clean_checks": 18073, "period": "Jun 2025 \u2013 Jun 2026"}, "avg_check": {"dinner": 121.95, "lunch": 72.7, "by_day": {"Tue": 95.28, "Wed": 97.97, "Thu": 99.89, "Fri": 108.13, "Sat": 113.7, "Sun": 102.31}, "day_x_season": {"Tue|Summer": 92.59, "Tue|Fall": 90.21, "Tue|Winter": 94.42, "Tue|Spring": 104.77, "Wed|Summer": 98.58, "Wed|Fall": 104.07, "Wed|Winter": 96.26, "Wed|Spring": 96.46, "Thu|Summer": 105.04, "Thu|Fall": 101.87, "Thu|Winter": 96.43, "Thu|Spring": 93.24, "Fri|Summer": 104.85, "Fri|Fall": 108.53, "Fri|Winter": 113.64, "Fri|Spring": 105.53, "Sat|Summer": 115.46, "Sat|Fall": 110.09, "Sat|Winter": 116.78, "Sat|Spring": 114.29, "Sun|Summer": 100.39, "Sun|Fall": 94.55, "Sun|Winter": 105.66, "Sun|Spring": 107.44}}, "comp_annual": {"pasta": 41.4, "entree": 41.5, "appetizer": 34.4, "snack": 30.2, "apps_snack": 64.6, "wine_any": 68.6, "wine_glass": 50.2, "wine_bottle": 12.9, "wine_flight": 25.1, "liquor_any": 34.6, "specialty": 17.3, "dessert_alc": 19.3, "ipc": 6.3, "checks": 18073}, "comp_seasonal": {"Summer": {"pasta": 39.8, "entree": 39.8, "appetizer": 32.2, "snack": 27.1, "apps_snack": 46.6, "wine_any": 46.0, "wine_glass": 35.0, "wine_bottle": 13.3, "wine_flight": 23.1, "liquor_any": 35.2, "specialty": 16.1, "dessert_alc": 21.4, "ipc": 5.6}, "Fall": {"pasta": 41.5, "entree": 39.8, "appetizer": 29.9, "snack": 29.6, "apps_snack": 47.8, "wine_any": 46.9, "wine_glass": 36.6, "wine_bottle": 12.5, "wine_flight": 22.1, "liquor_any": 30.8, "specialty": 15.4, "dessert_alc": 20.2, "ipc": 5.6}, "Winter": {"pasta": 44.7, "entree": 39.3, "appetizer": 34.2, "snack": 28.3, "apps_snack": 49.4, "wine_any": 46.4, "wine_glass": 33.6, "wine_bottle": 15.9, "wine_flight": 23.8, "liquor_any": 33.1, "specialty": 16.9, "dessert_alc": 21.5, "ipc": 5.8}, "Spring": {"pasta": 44.3, "entree": 40.3, "appetizer": 31.0, "snack": 28.9, "apps_snack": 47.6, "wine_any": 44.9, "wine_glass": 33.6, "wine_bottle": 14.0, "wine_flight": 22.2, "liquor_any": 31.5, "specialty": 15.8, "dessert_alc": 17.4, "ipc": 5.5}}, "comp_daypart": {"Dinner": {"pasta": 50.2, "entree": 33.6, "appetizer": 31.7, "snack": 35.7, "apps_snack": 67.4, "wine_any": 93.1, "wine_glass": 51.7, "wine_bottle": 14.2, "wine_flight": 27.2, "liquor_any": 49.1, "specialty": 20.9, "dessert_alc": 23.0, "checks": 12331, "ipc": 6.4}, "Lunch": {"pasta": 28.7, "entree": 38.7, "appetizer": 32.7, "snack": 22.6, "apps_snack": 55.3, "wine_any": 76.0, "wine_glass": 46.4, "wine_bottle": 10.9, "wine_flight": 18.7, "liquor_any": 22.2, "specialty": 9.8, "dessert_alc": 16.2, "checks": 4439, "ipc": 5.2}, "Brunch": {"pasta": 1.9, "entree": 30.6, "appetizer": 16.2, "snack": 3.7, "apps_snack": 19.9, "wine_any": 74.3, "wine_glass": 48.4, "wine_bottle": 8.8, "wine_flight": 17.1, "liquor_any": 39.8, "specialty": 8.6, "dessert_alc": 6.5, "checks": 1306, "ipc": 5.9}}, "dessert": {"annual": {"checks": 16597, "alacarte_pct": 19.2, "total_pct": 26.3, "included_pct": 7.4, "no_dessert_pct": 73.7, "desserts_per_check": 0.4, "alc_conv_noincl": 20.4}, "daypart": {"Dinner": {"checks": 12354, "alacarte_pct": 22.1, "total_pct": 31.7, "included_pct": 10.1, "no_dessert_pct": 68.3, "desserts_per_check": 0.51, "alc_conv_noincl": 24.0}, "Lunch": {"checks": 4442, "alacarte_pct": 16.2, "total_pct": 16.4, "included_pct": 0.2, "no_dessert_pct": 83.6, "desserts_per_check": 0.21, "alc_conv_noincl": 16.2}, "Brunch": {"checks": 1308, "alacarte_pct": 2.4, "total_pct": 6.6, "included_pct": 4.2, "no_dessert_pct": 93.4, "desserts_per_check": 0.07, "alc_conv_noincl": 2.5}}, "season": {"Summer": {"checks": 4690, "alacarte_pct": 19.5, "total_pct": 26.5, "included_pct": 7.3, "no_dessert_pct": 73.5, "desserts_per_check": 0.41, "alc_conv_noincl": 20.7}, "Fall": {"checks": 4150, "alacarte_pct": 17.7, "total_pct": 25.3, "included_pct": 8.0, "no_dessert_pct": 74.7, "desserts_per_check": 0.39, "alc_conv_noincl": 18.8}, "Winter": {"checks": 3612, "alacarte_pct": 21.1, "total_pct": 29.0, "included_pct": 8.5, "no_dessert_pct": 71.0, "desserts_per_check": 0.44, "alc_conv_noincl": 22.4}, "Spring": {"checks": 4145, "alacarte_pct": 18.7, "total_pct": 24.5, "included_pct": 5.9, "no_dessert_pct": 75.5, "desserts_per_check": 0.38, "alc_conv_noincl": 19.8}}, "dow": {"Tue": {"checks": 2285, "alacarte_pct": 20.8, "total_pct": 26.5, "included_pct": 6.0, "no_dessert_pct": 73.5, "desserts_per_check": 0.41, "alc_conv_noincl": 21.8}, "Wed": {"checks": 2302, "alacarte_pct": 21.7, "total_pct": 26.8, "included_pct": 5.4, "no_dessert_pct": 73.2, "desserts_per_check": 0.4, "alc_conv_noincl": 22.6}, "Thu": {"checks": 2192, "alacarte_pct": 20.5, "total_pct": 27.6, "included_pct": 7.3, "no_dessert_pct": 72.4, "desserts_per_check": 0.41, "alc_conv_noincl": 21.9}, "Fri": {"checks": 4102, "alacarte_pct": 18.8, "total_pct": 26.2, "included_pct": 7.8, "no_dessert_pct": 73.8, "desserts_per_check": 0.39, "alc_conv_noincl": 19.9}, "Sat": {"checks": 4404, "alacarte_pct": 20.0, "total_pct": 28.0, "included_pct": 8.2, "no_dessert_pct": 72.0, "desserts_per_check": 0.43, "alc_conv_noincl": 21.5}, "Sun": {"checks": 2816, "alacarte_pct": 14.3, "total_pct": 21.6, "included_pct": 7.7, "no_dessert_pct": 78.4, "desserts_per_check": 0.35, "alc_conv_noincl": 15.0}}, "dp_season": {"Dinner|Summer": {"checks": 3188, "alacarte_pct": 22.3, "total_pct": 32.2, "included_pct": 10.2, "no_dessert_pct": 67.8, "desserts_per_check": 0.51, "alc_conv_noincl": 24.4}, "Dinner|Fall": {"checks": 2792, "alacarte_pct": 20.1, "total_pct": 31.0, "included_pct": 11.6, "no_dessert_pct": 69.0, "desserts_per_check": 0.49, "alc_conv_noincl": 22.0}, "Dinner|Winter": {"checks": 2438, "alacarte_pct": 24.2, "total_pct": 35.2, "included_pct": 11.9, "no_dessert_pct": 64.8, "desserts_per_check": 0.56, "alc_conv_noincl": 26.4}, "Dinner|Spring": {"checks": 2867, "alacarte_pct": 22.3, "total_pct": 30.1, "included_pct": 8.1, "no_dessert_pct": 69.9, "desserts_per_check": 0.48, "alc_conv_noincl": 24.0}, "Lunch|Summer": {"checks": 1159, "alacarte_pct": 17.0, "total_pct": 17.2, "included_pct": 0.3, "no_dessert_pct": 82.8, "desserts_per_check": 0.22, "alc_conv_noincl": 17.0}, "Lunch|Fall": {"checks": 1098, "alacarte_pct": 15.6, "total_pct": 15.8, "included_pct": 0.2, "no_dessert_pct": 84.2, "desserts_per_check": 0.19, "alc_conv_noincl": 15.6}, "Lunch|Winter": {"checks": 926, "alacarte_pct": 17.8, "total_pct": 18.1, "included_pct": 0.3, "no_dessert_pct": 81.9, "desserts_per_check": 0.24, "alc_conv_noincl": 17.9}, "Lunch|Spring": {"checks": 942, "alacarte_pct": 14.0, "total_pct": 14.0, "included_pct": 0.0, "no_dessert_pct": 86.0, "desserts_per_check": 0.17, "alc_conv_noincl": 14.0}, "Brunch|Summer": {"checks": 343, "alacarte_pct": 1.7, "total_pct": 5.8, "included_pct": 4.1, "no_dessert_pct": 94.2, "desserts_per_check": 0.06, "alc_conv_noincl": 1.8}, "Brunch|Fall": {"checks": 260, "alacarte_pct": 1.5, "total_pct": 4.2, "included_pct": 2.7, "no_dessert_pct": 95.8, "desserts_per_check": 0.05, "alc_conv_noincl": 1.6}, "Brunch|Winter": {"checks": 248, "alacarte_pct": 2.8, "total_pct": 8.5, "included_pct": 5.6, "no_dessert_pct": 91.5, "desserts_per_check": 0.1, "alc_conv_noincl": 3.0}, "Brunch|Spring": {"checks": 336, "alacarte_pct": 2.1, "total_pct": 6.2, "included_pct": 4.2, "no_dessert_pct": 93.8, "desserts_per_check": 0.07, "alc_conv_noincl": 2.2}}}, "category": {"Beer": {"net": 15899, "pct": 0.8}, "Food": {"net": 1126535, "pct": 58.4}, "Liquor": {"net": 171891, "pct": 8.9}, "NA Beverage": {"net": 19947, "pct": 1.0}, "Non-Grat Svc Charges": {"net": 1700, "pct": 0.1}, "Retail": {"net": 2989, "pct": 0.2}, "Wine": {"net": 571245, "pct": 29.6}, "Zero Proof": {"net": 18877, "pct": 1.0}}, "wine_sub": {"bottle": {"net": 149304, "pct": 26.3, "avg": 43.91}, "flight": {"net": 113600, "pct": 20.0, "avg": 14.95}, "glass": {"net": 305380, "pct": 53.7, "avg": 13.86}}, "liquor_sub": {"classic": {"net": 42935, "pct": 25.2, "avg": 9.32}, "other pours": {"net": 47406, "pct": 27.8, "avg": 11.56}, "specialty": {"net": 80275, "pct": 47.0, "avg": 14.15}}, "tod": {"hrs": [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], "hrlab": {"11": "11a", "12": "12p", "13": "1p", "14": "2p", "15": "3p", "16": "4p", "17": "5p", "18": "6p", "19": "7p", "20": "8p", "21": "9p"}, "covers_pct": {"11": 1.9, "12": 9.7, "13": 8.0, "14": 6.6, "15": 6.7, "16": 10.1, "17": 15.1, "18": 15.9, "19": 13.6, "20": 9.7, "21": 2.7}, "check": {"11": 76.11, "12": 71.89, "13": 71.53, "14": 62.7, "15": 55.73, "16": 90.98, "17": 105.54, "18": 130.72, "19": 127.58, "20": 87.62, "21": 82.73}, "byhour": {"11": {"glass of wine": 42.3, "wine flight": 9.0, "specialty cocktail": 6.1, "classic cocktail": 23.9, "dessert": 5.6, "soda/tea/coffee": 42.0}, "12": {"glass of wine": 41.6, "wine flight": 16.1, "specialty cocktail": 8.0, "classic cocktail": 6.8, "dessert": 15.6, "soda/tea/coffee": 29.9}, "13": {"glass of wine": 46.4, "wine flight": 19.1, "specialty cocktail": 9.9, "classic cocktail": 7.5, "dessert": 12.5, "soda/tea/coffee": 22.3}, "14": {"glass of wine": 41.7, "wine flight": 16.8, "specialty cocktail": 9.6, "classic cocktail": 8.4, "dessert": 10.8, "soda/tea/coffee": 18.7}, "15": {"glass of wine": 36.7, "wine flight": 14.1, "specialty cocktail": 8.3, "classic cocktail": 15.8, "dessert": 11.7, "soda/tea/coffee": 9.9}, "16": {"glass of wine": 47.7, "wine flight": 21.0, "specialty cocktail": 15.2, "classic cocktail": 23.2, "dessert": 17.6, "soda/tea/coffee": 12.4}, "17": {"glass of wine": 53.3, "wine flight": 22.6, "specialty cocktail": 17.0, "classic cocktail": 27.1, "dessert": 21.4, "soda/tea/coffee": 13.9}, "18": {"glass of wine": 52.5, "wine flight": 31.2, "specialty cocktail": 23.2, "classic cocktail": 7.9, "dessert": 25.6, "soda/tea/coffee": 14.5}, "19": {"glass of wine": 48.3, "wine flight": 31.2, "specialty cocktail": 23.8, "classic cocktail": 7.2, "dessert": 25.1, "soda/tea/coffee": 12.9}, "20": {"glass of wine": 37.7, "wine flight": 20.4, "specialty cocktail": 19.2, "classic cocktail": 6.0, "dessert": 18.1, "soda/tea/coffee": 10.1}, "21": {"glass of wine": 41.8, "wine flight": 11.7, "specialty cocktail": 22.7, "classic cocktail": 13.4, "dessert": 9.7, "soda/tea/coffee": 6.5}}, "foodpen": {"11": {"Pasta": 5.1, "Entr\u00e9e/sandwich": 66.2, "Appetizer/snack": 26.2, "Dessert": 5.9}, "12": {"Pasta": 25.7, "Entr\u00e9e/sandwich": 72.1, "Appetizer/snack": 49.4, "Dessert": 16.0}, "13": {"Pasta": 22.7, "Entr\u00e9e/sandwich": 69.2, "Appetizer/snack": 48.7, "Dessert": 13.0}, "14": {"Pasta": 23.6, "Entr\u00e9e/sandwich": 61.2, "Appetizer/snack": 43.8, "Dessert": 13.0}, "15": {"Pasta": 21.8, "Entr\u00e9e/sandwich": 38.4, "Appetizer/snack": 38.9, "Dessert": 16.2}, "16": {"Pasta": 41.2, "Entr\u00e9e/sandwich": 39.9, "Appetizer/snack": 44.6, "Dessert": 19.4}, "17": {"Pasta": 50.2, "Entr\u00e9e/sandwich": 43.7, "Appetizer/snack": 45.1, "Dessert": 21.7}, "18": {"Pasta": 65.6, "Entr\u00e9e/sandwich": 41.9, "Appetizer/snack": 62.6, "Dessert": 25.8}, "19": {"Pasta": 65.1, "Entr\u00e9e/sandwich": 40.9, "Appetizer/snack": 60.9, "Dessert": 25.7}, "20": {"Pasta": 58.8, "Entr\u00e9e/sandwich": 35.7, "Appetizer/snack": 56.8, "Dessert": 22.7}, "21": {"Pasta": 41.7, "Entr\u00e9e/sandwich": 23.6, "Appetizer/snack": 43.9, "Dessert": 12.7}}, "mix": {"11": {"Pasta": 0.9, "Mains (entr\u00e9e/sandwich)": 43.8, "Starters & shares": 10.2, "Dessert": 1.0, "Wine": 20.6, "Cocktails/spirits": 10.1, "Beer + NA": 13.5}, "12": {"Pasta": 6.3, "Mains (entr\u00e9e/sandwich)": 28.2, "Starters & shares": 20.8, "Dessert": 3.6, "Wine": 23.7, "Cocktails/spirits": 5.4, "Beer + NA": 12.0}, "13": {"Pasta": 5.7, "Mains (entr\u00e9e/sandwich)": 28.2, "Starters & shares": 19.9, "Dessert": 2.9, "Wine": 26.3, "Cocktails/spirits": 7.1, "Beer + NA": 10.1}, "14": {"Pasta": 6.1, "Mains (entr\u00e9e/sandwich)": 24.0, "Starters & shares": 19.6, "Dessert": 3.1, "Wine": 29.1, "Cocktails/spirits": 8.5, "Beer + NA": 9.6}, "15": {"Pasta": 5.6, "Mains (entr\u00e9e/sandwich)": 10.5, "Starters & shares": 27.4, "Dessert": 3.8, "Wine": 31.5, "Cocktails/spirits": 14.0, "Beer + NA": 7.2}, "16": {"Pasta": 13.8, "Mains (entr\u00e9e/sandwich)": 8.4, "Starters & shares": 26.4, "Dessert": 3.7, "Wine": 26.7, "Cocktails/spirits": 14.1, "Beer + NA": 6.9}, "17": {"Pasta": 14.8, "Mains (entr\u00e9e/sandwich)": 8.9, "Starters & shares": 26.5, "Dessert": 4.0, "Wine": 24.9, "Cocktails/spirits": 14.6, "Beer + NA": 6.2}, "18": {"Pasta": 20.6, "Mains (entr\u00e9e/sandwich)": 8.8, "Starters & shares": 20.7, "Dessert": 4.7, "Wine": 27.4, "Cocktails/spirits": 11.6, "Beer + NA": 6.2}, "19": {"Pasta": 21.3, "Mains (entr\u00e9e/sandwich)": 8.4, "Starters & shares": 20.7, "Dessert": 4.9, "Wine": 26.7, "Cocktails/spirits": 12.1, "Beer + NA": 6.0}, "20": {"Pasta": 20.6, "Mains (entr\u00e9e/sandwich)": 8.3, "Starters & shares": 20.1, "Dessert": 4.7, "Wine": 27.2, "Cocktails/spirits": 13.0, "Beer + NA": 6.0}, "21": {"Pasta": 16.5, "Mains (entr\u00e9e/sandwich)": 7.0, "Starters & shares": 21.5, "Dessert": 3.7, "Wine": 29.8, "Cocktails/spirits": 14.6, "Beer + NA": 7.0}}, "groups": ["Pasta", "Mains (entr\u00e9e/sandwich)", "Starters & shares", "Dessert", "Wine", "Cocktails/spirits", "Beer + NA"]}, "party": {"bands": ["Solo (1)", "2-top", "3-top", "4-top", "5+ (group)"], "labels": ["Avg check ($)", "Pasta", "Entr\u00e9e", "App or snack", "Dessert (\u00e0 la carte)", "Wine bottle", "Glass of wine", "Wine flight", "Any cocktail", "Specialty cocktail"], "counts": {"Solo (1)": 1305, "2-top": 10013, "3-top": 1831, "4-top": 1726, "5+ (group)": 970}, "total": 15837, "walkin_pct": 59.9, "overall": {"Avg check ($)": {"Solo (1)": {"v": 42.9281, "n": 1305}, "2-top": {"v": 94.7632, "n": 10013}, "3-top": {"v": 112.1512, "n": 1831}, "4-top": {"v": 162.5326, "n": 1726}, "5+ (group)": {"v": 182.1387, "n": 970}}, "Pasta": {"Solo (1)": {"v": 0.2105, "n": 1305}, "2-top": {"v": 0.4105, "n": 10013}, "3-top": {"v": 0.4528, "n": 1831}, "4-top": {"v": 0.5838, "n": 1726}, "5+ (group)": {"v": 0.5417, "n": 970}}, "Entr\u00e9e": {"Solo (1)": {"v": 0.2731, "n": 1305}, "2-top": {"v": 0.4182, "n": 10013}, "3-top": {"v": 0.4604, "n": 1831}, "4-top": {"v": 0.5428, "n": 1726}, "5+ (group)": {"v": 0.5263, "n": 970}}, "App or snack": {"Solo (1)": {"v": 0.1945, "n": 1305}, "2-top": {"v": 0.3512, "n": 10013}, "3-top": {"v": 0.3801, "n": 1831}, "4-top": {"v": 0.4503, "n": 1726}, "5+ (group)": {"v": 0.449, "n": 970}}, "Dessert (\u00e0 la carte)": {"Solo (1)": {"v": 0.1076, "n": 1305}, "2-top": {"v": 0.2034, "n": 10013}, "3-top": {"v": 0.2075, "n": 1831}, "4-top": {"v": 0.2665, "n": 1726}, "5+ (group)": {"v": 0.2111, "n": 970}}, "Wine bottle": {"Solo (1)": {"v": 0.0831, "n": 1305}, "2-top": {"v": 0.1131, "n": 10013}, "3-top": {"v": 0.1327, "n": 1831}, "4-top": {"v": 0.1809, "n": 1726}, "5+ (group)": {"v": 0.1977, "n": 970}}, "Glass of wine": {"Solo (1)": {"v": 0.4615, "n": 1305}, "2-top": {"v": 0.5212, "n": 10013}, "3-top": {"v": 0.4943, "n": 1831}, "4-top": {"v": 0.5786, "n": 1726}, "5+ (group)": {"v": 0.5366, "n": 970}}, "Wine flight": {"Solo (1)": {"v": 0.1152, "n": 1305}, "2-top": {"v": 0.2803, "n": 10013}, "3-top": {"v": 0.2638, "n": 1831}, "4-top": {"v": 0.3046, "n": 1726}, "5+ (group)": {"v": 0.2636, "n": 970}}, "Any cocktail": {"Solo (1)": {"v": 0.196, "n": 1305}, "2-top": {"v": 0.3457, "n": 10013}, "3-top": {"v": 0.373, "n": 1831}, "4-top": {"v": 0.4867, "n": 1726}, "5+ (group)": {"v": 0.4686, "n": 970}}, "Specialty cocktail": {"Solo (1)": {"v": 0.0892, "n": 1305}, "2-top": {"v": 0.1738, "n": 10013}, "3-top": {"v": 0.1841, "n": 1831}, "4-top": {"v": 0.2509, "n": 1726}, "5+ (group)": {"v": 0.2492, "n": 970}}}, "booked": {"Avg check ($)": {"walkin": 79.6385, "booked": 143.4004}, "Pasta": {"walkin": 0.3451, "booked": 0.5462}, "Entr\u00e9e": {"walkin": 0.3809, "booked": 0.5064}, "App or snack": {"walkin": 0.3244, "booked": 0.4092}, "Dessert (\u00e0 la carte)": {"walkin": 0.1487, "booked": 0.2848}, "Wine bottle": {"walkin": 0.0991, "booked": 0.1649}, "Glass of wine": {"walkin": 0.4884, "booked": 0.5681}, "Wine flight": {"walkin": 0.2364, "booked": 0.3112}, "Any cocktail": {"walkin": 0.3315, "booked": 0.401}, "Specialty cocktail": {"walkin": 0.153, "booked": 0.2228}}}, "table_mix": {"bands": ["Solo (1)", "2-top", "3-top", "4-top", "5+ (group)"], "by_daypart": {"Dinner": {"_total": {"tables": 10712, "covers": 26937}, "Solo (1)": {"tables_pct": 6.8, "covers_pct": 2.7, "n": 731}, "2-top": {"tables_pct": 64.3, "covers_pct": 51.2, "n": 6893}, "3-top": {"tables_pct": 10.7, "covers_pct": 12.7, "n": 1141}, "4-top": {"tables_pct": 12.4, "covers_pct": 19.7, "n": 1324}, "5+ (group)": {"tables_pct": 5.8, "covers_pct": 13.7, "n": 623}}, "Lunch": {"_total": {"tables": 3995, "covers": 9616}, "Solo (1)": {"tables_pct": 12.7, "covers_pct": 5.3, "n": 508}, "2-top": {"tables_pct": 61.8, "covers_pct": 51.4, "n": 2469}, "3-top": {"tables_pct": 11.8, "covers_pct": 14.7, "n": 472}, "4-top": {"tables_pct": 7.3, "covers_pct": 12.2, "n": 293}, "5+ (group)": {"tables_pct": 6.3, "covers_pct": 16.5, "n": 253}}, "Brunch": {"_total": {"tables": 1170, "covers": 3117}, "Solo (1)": {"tables_pct": 6.2, "covers_pct": 2.3, "n": 72}, "2-top": {"tables_pct": 57.4, "covers_pct": 43.1, "n": 672}, "3-top": {"tables_pct": 18.6, "covers_pct": 21.0, "n": 218}, "4-top": {"tables_pct": 9.7, "covers_pct": 14.5, "n": 113}, "5+ (group)": {"tables_pct": 8.1, "covers_pct": 19.1, "n": 95}}}, "by_dow": {"Tue": {"_total": {"tables": 1992, "covers": 4782}, "Solo (1)": {"tables_pct": 12.4, "covers_pct": 5.2, "n": 248}, "2-top": {"tables_pct": 62.4, "covers_pct": 52.0, "n": 1243}, "3-top": {"tables_pct": 10.6, "covers_pct": 13.3, "n": 212}, "4-top": {"tables_pct": 8.9, "covers_pct": 14.8, "n": 177}, "5+ (group)": {"tables_pct": 5.6, "covers_pct": 14.7, "n": 112}}, "Wed": {"_total": {"tables": 1976, "covers": 4764}, "Solo (1)": {"tables_pct": 11.2, "covers_pct": 4.7, "n": 222}, "2-top": {"tables_pct": 62.2, "covers_pct": 51.6, "n": 1229}, "3-top": {"tables_pct": 12.0, "covers_pct": 15.0, "n": 238}, "4-top": {"tables_pct": 9.3, "covers_pct": 15.4, "n": 183}, "5+ (group)": {"tables_pct": 5.3, "covers_pct": 13.4, "n": 104}}, "Thu": {"_total": {"tables": 1910, "covers": 4587}, "Solo (1)": {"tables_pct": 11.8, "covers_pct": 4.9, "n": 225}, "2-top": {"tables_pct": 62.5, "covers_pct": 52.0, "n": 1193}, "3-top": {"tables_pct": 10.2, "covers_pct": 12.8, "n": 195}, "4-top": {"tables_pct": 10.1, "covers_pct": 16.8, "n": 193}, "5+ (group)": {"tables_pct": 5.4, "covers_pct": 13.5, "n": 104}}, "Fri": {"_total": {"tables": 3577, "covers": 8942}, "Solo (1)": {"tables_pct": 7.4, "covers_pct": 3.0, "n": 266}, "2-top": {"tables_pct": 64.8, "covers_pct": 51.8, "n": 2318}, "3-top": {"tables_pct": 10.2, "covers_pct": 12.2, "n": 365}, "4-top": {"tables_pct": 11.6, "covers_pct": 18.6, "n": 416}, "5+ (group)": {"tables_pct": 5.9, "covers_pct": 14.3, "n": 212}}, "Sat": {"_total": {"tables": 3956, "covers": 10127}, "Solo (1)": {"tables_pct": 5.1, "covers_pct": 2.0, "n": 200}, "2-top": {"tables_pct": 65.1, "covers_pct": 50.8, "n": 2574}, "3-top": {"tables_pct": 11.0, "covers_pct": 12.9, "n": 436}, "4-top": {"tables_pct": 12.4, "covers_pct": 19.4, "n": 492}, "5+ (group)": {"tables_pct": 6.4, "covers_pct": 14.8, "n": 254}}, "Sun": {"_total": {"tables": 2466, "covers": 6468}, "Solo (1)": {"tables_pct": 6.1, "covers_pct": 2.3, "n": 150}, "2-top": {"tables_pct": 59.9, "covers_pct": 45.7, "n": 1477}, "3-top": {"tables_pct": 15.6, "covers_pct": 17.9, "n": 385}, "4-top": {"tables_pct": 10.9, "covers_pct": 16.6, "n": 269}, "5+ (group)": {"tables_pct": 7.5, "covers_pct": 17.5, "n": 185}}}, "by_season": {"Summer": {"_total": {"tables": 5432, "covers": 13453}, "Solo (1)": {"tables_pct": 8.5, "covers_pct": 3.4, "n": 461}, "2-top": {"tables_pct": 63.7, "covers_pct": 51.4, "n": 3458}, "3-top": {"tables_pct": 11.9, "covers_pct": 14.4, "n": 644}, "4-top": {"tables_pct": 10.4, "covers_pct": 16.8, "n": 565}, "5+ (group)": {"tables_pct": 5.6, "covers_pct": 14.0, "n": 304}}, "Fall": {"_total": {"tables": 3675, "covers": 9201}, "Solo (1)": {"tables_pct": 8.4, "covers_pct": 3.4, "n": 309}, "2-top": {"tables_pct": 63.7, "covers_pct": 50.9, "n": 2342}, "3-top": {"tables_pct": 11.1, "covers_pct": 13.3, "n": 408}, "4-top": {"tables_pct": 10.1, "covers_pct": 16.2, "n": 372}, "5+ (group)": {"tables_pct": 6.6, "covers_pct": 16.3, "n": 244}}, "Winter": {"_total": {"tables": 3162, "covers": 7917}, "Solo (1)": {"tables_pct": 7.7, "covers_pct": 3.1, "n": 245}, "2-top": {"tables_pct": 62.9, "covers_pct": 50.2, "n": 1989}, "3-top": {"tables_pct": 11.5, "covers_pct": 13.8, "n": 364}, "4-top": {"tables_pct": 11.9, "covers_pct": 19.0, "n": 377}, "5+ (group)": {"tables_pct": 5.9, "covers_pct": 13.8, "n": 187}}, "Spring": {"_total": {"tables": 3608, "covers": 9099}, "Solo (1)": {"tables_pct": 8.2, "covers_pct": 3.3, "n": 296}, "2-top": {"tables_pct": 62.2, "covers_pct": 49.3, "n": 2245}, "3-top": {"tables_pct": 11.5, "covers_pct": 13.7, "n": 415}, "4-top": {"tables_pct": 11.5, "covers_pct": 18.3, "n": 416}, "5+ (group)": {"tables_pct": 6.5, "covers_pct": 15.4, "n": 236}}}, "by_hour": {"11": {"_total": {"tables": 326, "covers": 933}, "Solo (1)": {"tables_pct": 4.9, "covers_pct": 1.7, "n": 16}, "2-top": {"tables_pct": 53.1, "covers_pct": 37.1, "n": 173}, "3-top": {"tables_pct": 22.7, "covers_pct": 23.8, "n": 74}, "4-top": {"tables_pct": 9.2, "covers_pct": 12.9, "n": 30}, "5+ (group)": {"tables_pct": 10.1, "covers_pct": 24.5, "n": 33}}, "12": {"_total": {"tables": 1745, "covers": 4332}, "Solo (1)": {"tables_pct": 10.6, "covers_pct": 4.3, "n": 185}, "2-top": {"tables_pct": 60.2, "covers_pct": 48.5, "n": 1050}, "3-top": {"tables_pct": 15.5, "covers_pct": 18.8, "n": 271}, "4-top": {"tables_pct": 7.6, "covers_pct": 12.2, "n": 132}, "5+ (group)": {"tables_pct": 6.1, "covers_pct": 16.3, "n": 107}}, "13": {"_total": {"tables": 1374, "covers": 3478}, "Solo (1)": {"tables_pct": 10.0, "covers_pct": 4.0, "n": 138}, "2-top": {"tables_pct": 60.8, "covers_pct": 48.1, "n": 836}, "3-top": {"tables_pct": 12.7, "covers_pct": 15.0, "n": 174}, "4-top": {"tables_pct": 8.4, "covers_pct": 13.3, "n": 116}, "5+ (group)": {"tables_pct": 8.0, "covers_pct": 19.6, "n": 110}}, "14": {"_total": {"tables": 946, "covers": 2131}, "Solo (1)": {"tables_pct": 14.4, "covers_pct": 6.4, "n": 136}, "2-top": {"tables_pct": 64.2, "covers_pct": 57.0, "n": 607}, "3-top": {"tables_pct": 10.7, "covers_pct": 14.2, "n": 101}, "4-top": {"tables_pct": 6.2, "covers_pct": 11.1, "n": 59}, "5+ (group)": {"tables_pct": 4.5, "covers_pct": 11.4, "n": 43}}, "15": {"_total": {"tables": 770, "covers": 1851}, "Solo (1)": {"tables_pct": 13.6, "covers_pct": 5.7, "n": 105}, "2-top": {"tables_pct": 61.2, "covers_pct": 50.9, "n": 471}, "3-top": {"tables_pct": 9.1, "covers_pct": 11.3, "n": 70}, "4-top": {"tables_pct": 9.0, "covers_pct": 14.9, "n": 69}, "5+ (group)": {"tables_pct": 7.1, "covers_pct": 17.2, "n": 55}}, "16": {"_total": {"tables": 1567, "covers": 3884}, "Solo (1)": {"tables_pct": 8.4, "covers_pct": 3.4, "n": 131}, "2-top": {"tables_pct": 63.6, "covers_pct": 51.3, "n": 996}, "3-top": {"tables_pct": 11.4, "covers_pct": 13.8, "n": 179}, "4-top": {"tables_pct": 11.1, "covers_pct": 17.9, "n": 174}, "5+ (group)": {"tables_pct": 5.6, "covers_pct": 13.6, "n": 87}}, "17": {"_total": {"tables": 2623, "covers": 6468}, "Solo (1)": {"tables_pct": 7.2, "covers_pct": 2.9, "n": 188}, "2-top": {"tables_pct": 65.2, "covers_pct": 52.9, "n": 1711}, "3-top": {"tables_pct": 11.0, "covers_pct": 13.4, "n": 289}, "4-top": {"tables_pct": 11.1, "covers_pct": 18.1, "n": 292}, "5+ (group)": {"tables_pct": 5.5, "covers_pct": 12.7, "n": 143}}, "18": {"_total": {"tables": 2725, "covers": 7096}, "Solo (1)": {"tables_pct": 5.0, "covers_pct": 1.9, "n": 135}, "2-top": {"tables_pct": 62.8, "covers_pct": 48.2, "n": 1711}, "3-top": {"tables_pct": 11.3, "covers_pct": 13.0, "n": 308}, "4-top": {"tables_pct": 14.7, "covers_pct": 22.6, "n": 401}, "5+ (group)": {"tables_pct": 6.2, "covers_pct": 14.2, "n": 170}}, "19": {"_total": {"tables": 2281, "covers": 5910}, "Solo (1)": {"tables_pct": 6.3, "covers_pct": 2.4, "n": 144}, "2-top": {"tables_pct": 63.8, "covers_pct": 49.2, "n": 1455}, "3-top": {"tables_pct": 9.9, "covers_pct": 11.4, "n": 225}, "4-top": {"tables_pct": 13.1, "covers_pct": 20.2, "n": 299}, "5+ (group)": {"tables_pct": 6.9, "covers_pct": 16.7, "n": 158}}, "20": {"_total": {"tables": 1227, "covers": 2873}, "Solo (1)": {"tables_pct": 8.0, "covers_pct": 3.4, "n": 98}, "2-top": {"tables_pct": 68.9, "covers_pct": 58.8, "n": 845}, "3-top": {"tables_pct": 9.0, "covers_pct": 11.6, "n": 111}, "4-top": {"tables_pct": 10.5, "covers_pct": 18.0, "n": 129}, "5+ (group)": {"tables_pct": 3.6, "covers_pct": 8.2, "n": 44}}, "21": {"_total": {"tables": 280, "covers": 691}, "Solo (1)": {"tables_pct": 11.4, "covers_pct": 4.6, "n": 32}, "2-top": {"tables_pct": 60.4, "covers_pct": 48.9, "n": 169}, "3-top": {"tables_pct": 10.4, "covers_pct": 12.6, "n": 29}, "4-top": {"tables_pct": 10.4, "covers_pct": 16.8, "n": 29}, "5+ (group)": {"tables_pct": 7.5, "covers_pct": 17.1, "n": 21}}}}, "sr": {"tot_cov": 37147.0, "tot_res": 15574.0, "avg_party": 2.39, "walkin_cov": 20055, "walkin_res": 9493, "booked_cov": 17092, "booked_res": 6081, "walkin_avg": 2.11, "booked_avg": 2.81, "spend_per_cover": 49.62, "total_spend": 1736373.91, "cancel_cov": 5643, "noshow_cov": 747, "party": [{"size": "1", "res": 1526.0, "cov": 1526.0, "res_pct": 9.798381918582253, "cov_pct": 4.108003338089214}, {"size": "2", "res": 10134.0, "cov": 20268.0, "res_pct": 65.06998844227559, "cov_pct": 54.56160659003418}, {"size": "3", "res": 1674.0, "cov": 5022.0, "res_pct": 10.74868370360858, "cov_pct": 13.519261313161223}, {"size": "4", "res": 1542.0, "cov": 6168.0, "res_pct": 9.901117246693207, "cov_pct": 16.604301827873044}, {"size": "5", "res": 354.0, "cov": 1770.0, "res_pct": 2.2730191344548607, "cov_pct": 4.764853150994696}, {"size": "6", "res": 214.0, "cov": 1284.0, "res_pct": 1.374085013484012, "cov_pct": 3.4565375400436102}, {"size": "7", "res": 53.0, "cov": 371.0, "res_pct": 0.34031077436753565, "cov_pct": 0.9987347565079279}, {"size": "8", "res": 40.0, "cov": 320.0, "res_pct": 0.2568383202773854, "cov_pct": 0.8614423775809621}, {"size": "9", "res": 13.0, "cov": 117.0, "res_pct": 0.08347245409015025, "cov_pct": 0.3149648693030393}, {"size": "10+", "res": 24.0, "cov": 301.0, "res_pct": 0.15410299216643122, "cov_pct": 0.8102942364120924}], "dow": {"Friday": {"cpd": 152.0, "spc": 50.85}, "Monday": {"cpd": 35.0, "spc": NaN}, "Saturday": {"cpd": 167.0, "spc": 51.73}, "Sunday": {"cpd": 108.0, "spc": 47.1}, "Thursday": {"cpd": 84.0, "spc": 50.84}, "Tuesday": {"cpd": 79.0, "spc": 47.49}, "Wednesday": {"cpd": 82.0, "spc": 48.27}}, "funnel": {"attempts": 8249, "seated": 6081, "canceled": 1878, "noshow": 290, "cancel_rate": 22.8, "noshow_rate": 3.5}}, "prose": {"Dinner": "\u2014 ~6.4 items \u00b7 12,331 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often a shared snack or side (usually the Goat Cheese Fritters), often an entr\u00e9e (usually the Fresh Catch), sometimes an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, and sometimes a specialty cocktail (Old Fashioned Alice).", "Lunch": "\u2014 ~5.2 items \u00b7 4,439 checks: often an entr\u00e9e (usually the Risotto), often a sandwich (usually the burger), sometimes an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a soft drink (iced tea), and sometimes a wine flight.", "Brunch": "\u2014 ~5.9 items \u00b7 1,306 checks: two brunch plates (usually the Brunch Tots), sometimes an entr\u00e9e (usually the Eggs Benedict), sometimes a sandwich (usually the burger), and sometimes an appetizer (usually the BRUNCH Tots); to drink, often a glass of wine, sometimes a soft drink (a French press), sometimes a classic cocktail (a Bloody Mary), and sometimes a wine flight.", "Summer": "\u2014 ~6.0 items \u00b7 6,188 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Scallops), sometimes an appetizer (usually the Meatball App), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a classic cocktail (Spicy Margherita).", "Fall": "\u2014 ~6.0 items \u00b7 4,142 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Mushroom Risotto), sometimes a shared snack or side (usually the Goat Cheese Fritters), sometimes an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a soft drink (a French press).", "Winter": "\u2014 ~6.2 items \u00b7 3,609 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Mushroom Risotto), sometimes a shared snack or side (usually the Goat Cheese Fritters), sometimes an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Old Fashioned Alice), and sometimes a soft drink (a French press).", "Spring": "\u2014 ~6.0 items \u00b7 4,137 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the English Pea Risotto), sometimes an appetizer (usually the Meatball App), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Medicine Woman), and sometimes a soft drink (a French press).", "Tue": "\u2014 ~5.9 items \u00b7 2,279 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Fresh Catch), sometimes a shared snack or side (usually the Goat Cheese Fritters), sometimes a happy-hour bite (usually the 3 Meatballs), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, often a wine flight, and sometimes a soft drink (a French press).", "Wed": "\u2014 ~5.8 items \u00b7 2,298 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Fresh Catch), sometimes an appetizer (usually the Meatball App), sometimes a happy-hour bite (usually the 3 Meatballs), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a wine flight, and sometimes a soft drink (a French press).", "Thu": "\u2014 ~6.0 items \u00b7 2,192 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an entr\u00e9e (usually the Fresh Catch), sometimes a happy-hour bite (usually the 3 Meatballs), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a wine flight, sometimes a classic cocktail (Spicy Margherita), and sometimes a specialty cocktail (Blooming Ruin).", "Fri": "\u2014 ~6.3 items \u00b7 4,095 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), often an entr\u00e9e (usually the Fresh Catch), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a wine flight, and sometimes a specialty cocktail (Blooming Ruin).", "Sat": "\u2014 ~6.0 items \u00b7 4,398 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Fresh Catch), often a shared snack or side (usually the Goat Cheese Fritters), often an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a soft drink (a French press).", "Sun": "\u2014 ~6.1 items \u00b7 2,811 checks: often a brunch plate (usually the Brunch Tots), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Fresh Catch), sometimes an appetizer (usually the Meatball App), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a soft drink (a French press), sometimes a wine flight, and sometimes a specialty cocktail (Blooming Ruin).", "Tue dinner": "\u2014 ~6.3 items \u00b7 1,564 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), sometimes an entr\u00e9e (usually the Fresh Catch), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a wine flight, and often a glass of wine.", "Wed dinner": "\u2014 ~6.2 items \u00b7 1,637 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), sometimes an entr\u00e9e (usually the Fresh Catch), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a wine flight, and sometimes a specialty cocktail (Old Fashioned Alice).", "Thu dinner": "\u2014 ~6.5 items \u00b7 1,602 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), sometimes an entr\u00e9e (usually the Fresh Catch), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a wine flight, sometimes a classic cocktail (Spicy Margherita), and sometimes a specialty cocktail (Old Fashioned Alice).", "Fri dinner": "\u2014 ~6.6 items \u00b7 3,118 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), often a shared snack or side (usually the Goat Cheese Fritters), sometimes an entr\u00e9e (usually the Fresh Catch), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a specialty cocktail (Old Fashioned Alice), and sometimes a wine flight.", "Sat dinner": "\u2014 ~6.4 items \u00b7 2,902 checks: one pasta (usually the Red Wine Infused Rigatoni Bolognese), often a shared snack or side (usually the Goat Cheese Fritters), often an entr\u00e9e (usually the Fresh Catch), often an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a specialty cocktail (Old Fashioned Alice), sometimes a wine flight, and sometimes a spirit pour (usually the Titos).", "Tue lunch": "\u2014 ~4.9 items \u00b7 715 checks: often an entr\u00e9e (usually the Risotto), often a sandwich (usually the burger), sometimes an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, and sometimes a soft drink (iced tea).", "Wed lunch": "\u2014 ~5.0 items \u00b7 661 checks: often an entr\u00e9e (usually the Risotto), often a sandwich (usually the burger), sometimes an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, and sometimes a soft drink (iced tea).", "Thu lunch": "\u2014 ~4.8 items \u00b7 590 checks: often a sandwich (usually the burger), often an entr\u00e9e (usually the Risotto), sometimes an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, and sometimes a soft drink (iced tea).", "Fri lunch": "\u2014 ~5.4 items \u00b7 977 checks: often an entr\u00e9e (usually the Risotto), often a sandwich (usually the burger), sometimes an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a salad (usually the House Salad); to drink, often a glass of wine, sometimes a soft drink (iced tea), and sometimes a wine flight.", "Sat lunch": "\u2014 ~5.4 items \u00b7 1,496 checks: often a sandwich (usually the burger), often an entr\u00e9e (usually the Risotto), often an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a wine flight, and sometimes a soft drink (iced tea).", "Sunday brunch": "\u2014 ~5.9 items \u00b7 1,306 checks: two brunch plates (usually the Brunch Tots), sometimes an entr\u00e9e (usually the Eggs Benedict), sometimes a sandwich (usually the burger), and sometimes an appetizer (usually the BRUNCH Tots); to drink, often a glass of wine, sometimes a soft drink (a French press), sometimes a classic cocktail (a Bloody Mary), and sometimes a wine flight.", "Sunday dinner": "\u2014 ~6.2 items \u00b7 1,505 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often a shared snack or side (usually the Goat Cheese Fritters), often an entr\u00e9e (usually the Fresh Catch), often an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Old Fashioned Alice), and sometimes a soft drink (a French press).", "Summer dinner": "\u2014 ~6.4 items \u00b7 4,249 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Scallops), often a shared snack or side (usually the Goat Cheese Fritters), often an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a classic cocktail (Spicy Margherita).", "Fall dinner": "\u2014 ~6.4 items \u00b7 2,786 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often a shared snack or side (usually the House-made Tater Tots), sometimes an entr\u00e9e (usually the Butcher's Selection), sometimes an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, and sometimes a specialty cocktail (Blooming Ruin).", "Winter dinner": "\u2014 ~6.5 items \u00b7 2,436 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often a shared snack or side (usually the House-made Tater Tots), often an entr\u00e9e (usually the Cider Brined Pork Chop), sometimes an appetizer (usually the Meatball App), and sometimes a happy-hour bite (usually the Brussels Sprouts); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Old Fashioned Alice), and sometimes a wine bottle.", "Spring dinner": "\u2014 ~6.2 items \u00b7 2,860 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Butcher's Selection), often a shared snack or side (usually the Goat Cheese Fritters), sometimes an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, and sometimes a specialty cocktail (Medicine Woman).", "Summer lunch": "\u2014 ~5.0 items \u00b7 1,476 checks: often an entr\u00e9e (usually the House Salad with Chicken), often a sandwich (usually the burger), sometimes an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a salad (usually the House Salad); to drink, often a glass of wine, sometimes a soft drink (iced tea), and sometimes a wine flight.", "Fall lunch": "\u2014 ~5.2 items \u00b7 1,096 checks: often an entr\u00e9e (usually the Caesar w/ Salmon), often a sandwich (usually the burger), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an appetizer (usually the Goat Cheese Fritters), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a wine flight, and sometimes a soft drink (iced tea).", "Winter lunch": "\u2014 ~5.5 items \u00b7 925 checks: often an entr\u00e9e (usually the Risotto), often a sandwich (usually the burger), often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an appetizer (usually the House-made Tater Tots), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a soft drink (a French press), and sometimes a wine flight.", "Spring lunch": "\u2014 ~5.2 items \u00b7 942 checks: often an entr\u00e9e (usually the Pea Salad with Salmon), often a sandwich (usually the burger), often an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a soft drink (iced tea), and sometimes a wine flight.", "Summer brunch": "\u2014 ~6.0 items \u00b7 463 checks: two brunch plates (usually the Goat Cheese Fritters), sometimes an entr\u00e9e (usually the Eggs Benedict), sometimes a sandwich (usually the burger), and sometimes an appetizer (usually the BRUNCH Tots); to drink, often a glass of wine, sometimes a soft drink (a French press), sometimes a classic cocktail (a Bloody Mary), and sometimes a wine flight.", "Fall brunch": "\u2014 ~5.6 items \u00b7 260 checks: two brunch plates (usually the Brunch Rigatoni Bolognese), sometimes an entr\u00e9e (usually the Eggs Benedict), and sometimes a sandwich (usually the burger); to drink, often a glass of wine, sometimes a classic cocktail (a Bloody Mary), sometimes a soft drink (a French press), and sometimes a wine flight.", "Winter brunch": "\u2014 ~6.0 items \u00b7 248 checks: two brunch plates (usually the Brunch Tots), often an entr\u00e9e (usually the Eggs Benedict), sometimes a soup (usually the Cauliflower Soup), and sometimes an appetizer (usually the BRUNCH Tots); to drink, often a glass of wine, often a soft drink (a French press), sometimes a classic cocktail (a Bloody Mary), and sometimes a wine flight.", "Spring brunch": "\u2014 ~6.0 items \u00b7 335 checks: two brunch plates (usually the Benedict), often an entr\u00e9e (usually the Eggs Benedict), sometimes an appetizer (usually the Goat Cheese Fritters), and sometimes a sandwich (usually the burger); to drink, often a glass of wine, often a soft drink (a French press), sometimes a classic cocktail (a Bloody Mary), and sometimes a wine flight.", "Tue \u00b7 Summer": "\u2014 ~5.9 items \u00b7 782 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an entr\u00e9e (usually the Scallops), sometimes an appetizer (usually the Meatball App), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, often a wine flight, and sometimes a soft drink (iced tea).", "Wed \u00b7 Summer": "\u2014 ~5.9 items \u00b7 840 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Scallops), sometimes an appetizer (usually the Meatball App), sometimes a happy-hour bite (usually the 3 Meatballs), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a wine flight, and sometimes a specialty cocktail (Blooming Ruin).", "Thu \u00b7 Summer": "\u2014 ~6.0 items \u00b7 826 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Scallops), sometimes a happy-hour bite (usually the 3 Meatballs), sometimes an appetizer (usually the Meatball App), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a wine flight, and sometimes a specialty cocktail (Blooming Ruin).", "Fri \u00b7 Summer": "\u2014 ~6.2 items \u00b7 1,378 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), sometimes an entr\u00e9e (usually the Scallops), sometimes an appetizer (usually the Meatball App), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a wine flight, and sometimes a specialty cocktail (Blooming Ruin).", "Sat \u00b7 Summer": "\u2014 ~5.9 items \u00b7 1,388 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Scallops), often an appetizer (usually the Meatball App), often a shared snack or side (usually the Goat Cheese Fritters), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a specialty cocktail (Blooming Ruin), sometimes a wine flight, and sometimes a soft drink (iced tea).", "Sun \u00b7 Summer": "\u2014 ~6.2 items \u00b7 974 checks: often a brunch plate (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an entr\u00e9e (usually the Scallops), sometimes an appetizer (usually the Meatball App), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a wine flight, sometimes a soft drink (iced tea), and sometimes a specialty cocktail (Blooming Ruin).", "Tue \u00b7 Fall": "\u2014 ~5.5 items \u00b7 554 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Mushroom Risotto), sometimes a shared snack or side (usually the Goat Cheese Fritters), sometimes a happy-hour bite (usually the Brussels Sprouts), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a wine flight, and sometimes a soft drink (a French press).", "Wed \u00b7 Fall": "\u2014 ~5.8 items \u00b7 509 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Mushroom Risotto), sometimes a shared snack or side (usually the Goat Cheese Fritters), sometimes a happy-hour bite (usually the Brussels Sprouts), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a soft drink (a French press), and sometimes a wine flight.", "Thu \u00b7 Fall": "\u2014 ~6.3 items \u00b7 468 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the Brussels Sprouts), sometimes a shared snack or side (usually the Goat Cheese Fritters), sometimes an entr\u00e9e (usually the Mushroom Risotto), and sometimes an appetizer (usually the Meatball App); to drink, one glass of wine, sometimes a wine flight, sometimes a classic cocktail (EspressoTini), and sometimes a specialty cocktail (Blooming Ruin).", "Fri \u00b7 Fall": "\u2014 ~6.3 items \u00b7 972 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Mushroom Risotto), sometimes a happy-hour bite (usually the Brussels Sprouts), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a classic cocktail (EspressoTini).", "Sat \u00b7 Fall": "\u2014 ~6.1 items \u00b7 1,034 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Mushroom Risotto), often a shared snack or side (usually the Goat Cheese Fritters), sometimes an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a soft drink (a French press).", "Sun \u00b7 Fall": "\u2014 ~5.8 items \u00b7 605 checks: sometimes a brunch plate (usually the Brunch Rigatoni Bolognese), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an entr\u00e9e (usually the Mushroom Risotto), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a wine flight, and sometimes a soft drink (a French press).", "Tue \u00b7 Winter": "\u2014 ~6.2 items \u00b7 496 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the Brussels Sprouts), sometimes an entr\u00e9e (usually the Mushroom Risotto), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, often a wine flight, sometimes a wine bottle, and sometimes a soft drink (a French press).", "Wed \u00b7 Winter": "\u2014 ~6.0 items \u00b7 454 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an entr\u00e9e (usually the Mushroom Risotto), sometimes an appetizer (usually the Meatball App), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes a happy-hour bite (usually the Brussels Sprouts); to drink, often a glass of wine, sometimes a wine flight, sometimes a soft drink (a French press), and sometimes a specialty cocktail (Old Fashioned Alice).", "Thu \u00b7 Winter": "\u2014 ~6.1 items \u00b7 368 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an entr\u00e9e (usually the Mushroom Risotto), sometimes a happy-hour bite (usually the Brussels Sprouts), sometimes an appetizer (usually the Meatball App), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Old Fashioned Alice), and sometimes a soft drink (a French press).", "Fri \u00b7 Winter": "\u2014 ~6.6 items \u00b7 818 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the Brussels Sprouts), often a shared snack or side (usually the Goat Cheese Fritters), often an entr\u00e9e (usually the Mushroom Risotto), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a wine flight, sometimes a classic cocktail (Spicy Margherita), and sometimes a specialty cocktail (Old Fashioned Alice).", "Sat \u00b7 Winter": "\u2014 ~6.1 items \u00b7 972 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Mushroom Risotto), often a shared snack or side (usually the Goat Cheese Fritters), often an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Old Fashioned Alice), and sometimes a soft drink (a French press).", "Sun \u00b7 Winter": "\u2014 ~6.3 items \u00b7 498 checks: often a brunch plate (usually the Brunch Tots), often an entr\u00e9e (usually the Mushroom Risotto), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an appetizer (usually the Meatball App), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a soft drink (a French press), sometimes a wine flight, and sometimes a specialty cocktail (Old Fashioned Alice).", "Tue \u00b7 Spring": "\u2014 ~5.8 items \u00b7 447 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the English Pea Risotto), sometimes a shared snack or side (usually the Goat Cheese Fritters), sometimes an appetizer (usually the Meatball App), and sometimes a happy-hour bite (usually the 3 Meatballs); to drink, often a glass of wine, and often a wine flight.", "Wed \u00b7 Spring": "\u2014 ~5.6 items \u00b7 495 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the English Pea Risotto), sometimes an appetizer (usually the Meatball App), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes a happy-hour bite (usually the 3 Meatballs); to drink, often a glass of wine, sometimes a wine flight, and sometimes a wine bottle.", "Thu \u00b7 Spring": "\u2014 ~5.7 items \u00b7 530 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the English Pea Risotto), sometimes a happy-hour bite (usually the 3 Meatballs), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a wine flight, and sometimes a wine bottle.", "Fri \u00b7 Spring": "\u2014 ~6.1 items \u00b7 927 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), often an entr\u00e9e (usually the English Pea Risotto), often a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a wine flight, sometimes a classic cocktail (Spicy Margherita), and sometimes a specialty cocktail (Medicine Woman).", "Sat \u00b7 Spring": "\u2014 ~6.1 items \u00b7 1,004 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the English Pea Risotto), often an appetizer (usually the Meatball App), often a shared snack or side (usually the Goat Cheese Fritters), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Medicine Woman), and sometimes a soft drink (a French press).", "Sun \u00b7 Spring": "\u2014 ~6.0 items \u00b7 734 checks: often a brunch plate (usually the Benedict), often an entr\u00e9e (usually the English Pea Risotto), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an appetizer (usually the Meatball App), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a soft drink (a French press), sometimes a wine flight, and sometimes a classic cocktail (Spicy Margherita).", "Tue dinner \u00b7 Summer": "\u2014 ~6.4 items \u00b7 558 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an entr\u00e9e (usually the Scallops), sometimes a shared snack or side (usually the Goat Cheese Fritters), sometimes a happy-hour bite (usually the 3 Meatballs), and sometimes an appetizer (usually the Meatball App); to drink, often a wine flight, and often a glass of wine.", "Wed dinner \u00b7 Summer": "\u2014 ~6.4 items \u00b7 610 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), sometimes an entr\u00e9e (usually the Scallops), sometimes an appetizer (usually the Meatball App), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a wine flight, and sometimes a specialty cocktail (Blooming Ruin).", "Thu dinner \u00b7 Summer": "\u2014 ~6.4 items \u00b7 611 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), sometimes an entr\u00e9e (usually the Scallops), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a specialty cocktail (Blooming Ruin), and sometimes a wine flight.", "Fri dinner \u00b7 Summer": "\u2014 ~6.5 items \u00b7 1,049 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), often a shared snack or side (usually the Goat Cheese Fritters), sometimes an entr\u00e9e (usually the Scallops), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a specialty cocktail (Blooming Ruin), and sometimes a wine flight.", "Sat dinner \u00b7 Summer": "\u2014 ~6.4 items \u00b7 910 checks: one pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Scallops), often a shared snack or side (usually the Goat Cheese Fritters), often an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a specialty cocktail (Blooming Ruin), sometimes a wine flight, and sometimes a spirit pour (usually the Titos).", "Sun dinner \u00b7 Summer": "\u2014 ~6.3 items \u00b7 511 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often a shared snack or side (usually the Goat Cheese Fritters), often an appetizer (usually the Meatball App), often an entr\u00e9e (usually the Scallops), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a specialty cocktail (Blooming Ruin), sometimes a wine flight, and sometimes a soft drink (Sparkling Water 12oz).", "Tue dinner \u00b7 Fall": "\u2014 ~5.9 items \u00b7 343 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the Brussels Sprouts), sometimes a shared snack or side (usually the House-made Tater Tots), sometimes an entr\u00e9e (usually the Butcher's Selection), and sometimes an appetizer (usually the Meatball App); to drink, often a wine flight, often a glass of wine, and sometimes a classic cocktail (EspressoTini).", "Wed dinner \u00b7 Fall": "\u2014 ~5.9 items \u00b7 357 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the Brussels Sprouts), sometimes a shared snack or side (usually the House-made Tater Tots), sometimes an entr\u00e9e (usually the Butcher's Selection), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a specialty cocktail (Blooming Ruin), and sometimes a wine flight.", "Thu dinner \u00b7 Fall": "\u2014 ~6.8 items \u00b7 336 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the Brussels Sprouts), sometimes a shared snack or side (usually the House-made Tater Tots), sometimes an entr\u00e9e (usually the Butcher's Selection), and sometimes an appetizer (usually the Meatball App); to drink, one glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a classic cocktail (EspressoTini).", "Fri dinner \u00b7 Fall": "\u2014 ~6.7 items \u00b7 724 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the Brussels Sprouts), often an entr\u00e9e (usually the Butcher's Selection), often a shared snack or side (usually the House-made Tater Tots), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a specialty cocktail (Blooming Ruin), sometimes a classic cocktail (EspressoTini), and sometimes a wine flight.", "Sat dinner \u00b7 Fall": "\u2014 ~6.5 items \u00b7 681 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often a shared snack or side (usually the House-made Tater Tots), often an entr\u00e9e (usually the Butcher's Selection), sometimes an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a spirit pour (usually the Titos).", "Sun dinner \u00b7 Fall": "\u2014 ~6.0 items \u00b7 345 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often a shared snack or side (usually the House-made Tater Tots), often an entr\u00e9e (usually the Butcher's Selection), sometimes an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a soft drink (a French press).", "Tue dinner \u00b7 Winter": "\u2014 ~6.6 items \u00b7 343 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the Brussels Sprouts), sometimes an entr\u00e9e (usually the Cider Brined Pork Chop), sometimes a shared snack or side (usually the House-made Tater Tots), and sometimes a dessert (usually the S'mores Tart); to drink, often a wine flight, often a glass of wine, sometimes a wine bottle, and sometimes a specialty cocktail (Old Fashioned Alice).", "Wed dinner \u00b7 Winter": "\u2014 ~6.2 items \u00b7 303 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the Brussels Sprouts), sometimes a shared snack or side (usually the House-made Tater Tots), sometimes an appetizer (usually the Meatball App), and sometimes an entr\u00e9e (usually the Cider Brined Pork Chop); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Old Fashioned Alice), and sometimes a classic cocktail (Spicy Margherita).", "Thu dinner \u00b7 Winter": "\u2014 ~6.8 items \u00b7 256 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the Brussels Sprouts), sometimes an appetizer (usually the Meatball App), sometimes an entr\u00e9e (usually the Cider Brined Pork Chop), and sometimes a shared snack or side (usually the House-made Tater Tots); to drink, one glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Old Fashioned Alice), and sometimes a soft drink (a French press).", "Fri dinner \u00b7 Winter": "\u2014 ~6.8 items \u00b7 621 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the Brussels Sprouts), often a shared snack or side (usually the House-made Tater Tots), sometimes an entr\u00e9e (usually the Cider Brined Pork Chop), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Old Fashioned Alice), and sometimes a classic cocktail (Spicy Margherita).", "Sat dinner \u00b7 Winter": "\u2014 ~6.2 items \u00b7 660 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Cider Brined Pork Chop), often a shared snack or side (usually the House-made Tater Tots), sometimes an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a specialty cocktail (Old Fashioned Alice), sometimes a wine flight, and sometimes a spirit pour (usually the Titos).", "Sun dinner \u00b7 Winter": "\u2014 ~6.5 items \u00b7 250 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often a shared snack or side (usually the House-made Tater Tots), often an entr\u00e9e (usually the Cider Brined Pork Chop), often an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Old Fashioned Alice), and sometimes a wine bottle.", "Tue dinner \u00b7 Spring": "\u2014 ~6.3 items \u00b7 320 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an entr\u00e9e (usually the Butcher's Selection), sometimes a happy-hour bite (usually the 3 Meatballs), often a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a wine flight, and often a glass of wine.", "Wed dinner \u00b7 Spring": "\u2014 ~6.0 items \u00b7 367 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Butcher's Selection), sometimes a happy-hour bite (usually the 3 Meatballs), often a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a specialty cocktail (Medicine Woman), sometimes a wine flight, and sometimes a classic cocktail (Spicy Margherita).", "Thu dinner \u00b7 Spring": "\u2014 ~5.9 items \u00b7 399 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), often an entr\u00e9e (usually the Butcher's Selection), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a wine flight, and sometimes a wine bottle.", "Fri dinner \u00b7 Spring": "\u2014 ~6.3 items \u00b7 724 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a happy-hour bite (usually the 3 Meatballs), often a shared snack or side (usually the Goat Cheese Fritters), sometimes an entr\u00e9e (usually the Butcher's Selection), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a wine flight, sometimes a classic cocktail (Spicy Margherita), and sometimes a specialty cocktail (Medicine Woman).", "Sat dinner \u00b7 Spring": "\u2014 ~6.4 items \u00b7 651 checks: one pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Butcher's Selection), often a shared snack or side (usually the Goat Cheese Fritters), often an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a specialty cocktail (Medicine Woman), sometimes a wine flight, and sometimes a soft drink (a French press).", "Sun dinner \u00b7 Spring": "\u2014 ~6.1 items \u00b7 399 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Butcher's Selection), often a shared snack or side (usually the Goat Cheese Fritters), often an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Medicine Woman), and sometimes a soft drink (a French press).", "Tue lunch \u00b7 Summer": "\u2014 ~4.7 items \u00b7 224 checks: often an entr\u00e9e (usually the House Salad with Chicken), sometimes a sandwich (usually the burger), sometimes an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a salad (usually the House Salad); to drink, often a glass of wine, and sometimes a soft drink (iced tea).", "Wed lunch \u00b7 Summer": "\u2014 ~4.7 items \u00b7 230 checks: often an entr\u00e9e (usually the House Salad with Chicken), often an appetizer (usually the Goat Cheese Fritters), sometimes a sandwich (usually the burger), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a dessert (usually the Ice Cream / Sorbet); to drink, often a glass of wine, sometimes a soft drink (iced tea), and sometimes a wine flight.", "Thu lunch \u00b7 Summer": "\u2014 ~4.9 items \u00b7 215 checks: often an entr\u00e9e (usually the House Salad with Chicken), often a sandwich (usually the burger), sometimes a happy-hour bite (usually the Focaccia), sometimes an appetizer (usually the Goat Cheese Fritters), and sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese); to drink, often a glass of wine, sometimes a wine flight, and sometimes a soft drink (iced tea).", "Fri lunch \u00b7 Summer": "\u2014 ~5.2 items \u00b7 329 checks: often an entr\u00e9e (usually the House Salad with Chicken), often a sandwich (usually the burger), sometimes an appetizer (usually the Goat Cheese Fritters), sometimes a happy-hour bite (usually the Focaccia), and sometimes a salad (usually the House Salad); to drink, often a glass of wine, sometimes a soft drink (iced tea), and sometimes a wine flight.", "Sat lunch \u00b7 Summer": "\u2014 ~5.1 items \u00b7 478 checks: often a sandwich (usually the burger), often an entr\u00e9e (usually the House Salad with Chicken), often an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a wine flight, and sometimes a soft drink (iced tea).", "Tue lunch \u00b7 Fall": "\u2014 ~4.9 items \u00b7 211 checks: often a sandwich (usually the burger), often an entr\u00e9e (usually the Caesar w/ Salmon), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an appetizer (usually the Goat Cheese Fritters), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a soft drink (iced tea), and sometimes a wine flight.", "Wed lunch \u00b7 Fall": "\u2014 ~5.5 items \u00b7 152 checks: often an entr\u00e9e (usually the Caesar w/ Salmon), often a sandwich (usually the burger), sometimes an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a soup (usually the Soup); to drink, often a glass of wine, sometimes a soft drink (iced tea), and sometimes a wine flight.", "Thu lunch \u00b7 Fall": "\u2014 ~4.8 items \u00b7 132 checks: often a sandwich (usually the burger), sometimes an entr\u00e9e (usually the Caesar w/ Salmon), often a shared snack or side (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes an appetizer (usually the Goat Cheese Fritters); to drink, often a glass of wine, and sometimes a soft drink (iced tea).", "Fri lunch \u00b7 Fall": "\u2014 ~5.2 items \u00b7 248 checks: often an entr\u00e9e (usually the Caesar w/ Salmon), often a sandwich (usually the burger), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an appetizer (usually the Goat Cheese Fritters), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a wine flight, and sometimes a soft drink (iced tea).", "Sat lunch \u00b7 Fall": "\u2014 ~5.5 items \u00b7 353 checks: often an entr\u00e9e (usually the Caesar w/ Salmon), often a sandwich (usually the burger), often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an appetizer (usually the Goat Cheese Fritters), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a wine flight, and sometimes a soft drink (iced tea).", "Tue lunch \u00b7 Winter": "\u2014 ~5.2 items \u00b7 153 checks: often an entr\u00e9e (usually the Risotto), sometimes a sandwich (usually the burger), often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an appetizer (usually the House-made Tater Tots), and sometimes a soup (usually the Soup); to drink, often a glass of wine, sometimes a soft drink (a French press), sometimes a wine bottle, and sometimes a wine flight.", "Wed lunch \u00b7 Winter": "\u2014 ~5.6 items \u00b7 151 checks: often an entr\u00e9e (usually the Risotto), often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a sandwich (usually the burger), sometimes an appetizer (usually the House-made Tater Tots), and sometimes a soup (usually the Soup); to drink, often a glass of wine, and sometimes a soft drink (a French press).", "Thu lunch \u00b7 Winter": "\u2014 ~4.5 items \u00b7 112 checks: often a sandwich (usually the burger), sometimes an entr\u00e9e (usually the Risotto), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an appetizer (usually the House-made Tater Tots), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, and sometimes a soft drink (a French press).", "Fri lunch \u00b7 Winter": "\u2014 ~5.9 items \u00b7 197 checks: often an entr\u00e9e (usually the Risotto), often a sandwich (usually the burger), often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an appetizer (usually the House-made Tater Tots), and sometimes a salad (usually the Beets & Burrata); to drink, often a glass of wine, sometimes a soft drink (a French press), and sometimes a wine flight.", "Sat lunch \u00b7 Winter": "\u2014 ~5.8 items \u00b7 312 checks: often a sandwich (usually the burger), often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Risotto), often an appetizer (usually the House-made Tater Tots), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a wine flight, sometimes a soft drink (a French press), and sometimes a specialty cocktail (Drink Me).", "Tue lunch \u00b7 Spring": "\u2014 ~4.6 items \u00b7 127 checks: often an entr\u00e9e (usually the Pea Salad with Salmon), often a sandwich (usually the burger), sometimes an appetizer (usually the Goat Cheese Fritters), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes a salad (usually the House Salad); to drink, often a glass of wine, and sometimes a soft drink (iced tea).", "Wed lunch \u00b7 Spring": "\u2014 ~4.5 items \u00b7 128 checks: often an entr\u00e9e (usually the Pea Salad with Salmon), often an appetizer (usually the Goat Cheese Fritters), often a sandwich (usually the burger), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, and sometimes a soft drink (iced tea).", "Thu lunch \u00b7 Spring": "\u2014 ~5.1 items \u00b7 131 checks: often an entr\u00e9e (usually the Pea Salad with Salmon), often a sandwich (usually the burger), often an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, and sometimes a soft drink (iced tea).", "Fri lunch \u00b7 Spring": "\u2014 ~5.5 items \u00b7 203 checks: often an entr\u00e9e (usually the Pea Salad with Salmon), often a sandwich (usually the burger), often an appetizer (usually the Goat Cheese Fritters), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a soft drink (iced tea), and sometimes a wine flight.", "Sat lunch \u00b7 Spring": "\u2014 ~5.4 items \u00b7 353 checks: often an entr\u00e9e (usually the Pea Salad with Salmon), often an appetizer (usually the Goat Cheese Fritters), often a sandwich (usually the burger), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a wine flight, and sometimes a soft drink (iced tea).", "11am": "\u2014 ~6.2 items \u00b7 355 checks: two brunch plates (usually the Brunch Tots), often an entr\u00e9e (usually the Fresh Catch), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, often a soft drink (a French press), and sometimes a classic cocktail (Spicy Margherita).", "Noon": "\u2014 ~5.4 items \u00b7 1,877 checks: often an entr\u00e9e (usually the Fresh Catch), often a sandwich (usually the burger), often an appetizer (usually the Meatball App), sometimes a brunch plate (usually the Brunch Tots), and sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese); to drink, often a glass of wine, sometimes a soft drink (a French press), and sometimes a wine flight.", "1pm": "\u2014 ~5.3 items \u00b7 1,511 checks: often an entr\u00e9e (usually the Fresh Catch), often a sandwich (usually the burger), sometimes a brunch plate (usually the Brunch Tots), sometimes an appetizer (usually the Meatball App), and sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese); to drink, often a glass of wine, sometimes a soft drink (a French press), and sometimes a wine flight.", "2pm": "\u2014 ~5.0 items \u00b7 1,075 checks: sometimes a sandwich (usually the burger), often an entr\u00e9e (usually the Fresh Catch), sometimes an appetizer (usually the Meatball App), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), and sometimes a shared snack or side (usually the Goat Cheese Fritters); to drink, often a glass of wine, sometimes a wine flight, and sometimes a soft drink (a French press).", "3pm": "\u2014 ~5.4 items \u00b7 920 checks: sometimes a happy-hour bite (usually the 3 Meatballs), sometimes a sandwich (usually the burger), sometimes a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), and sometimes a wine flight.", "4pm": "\u2014 ~6.2 items \u00b7 1,796 checks: often a happy-hour bite (usually the 3 Meatballs), often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a shared snack or side (usually the Goat Cheese Fritters), sometimes an entr\u00e9e (usually the Fresh Catch), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a wine flight, and sometimes a specialty cocktail (Blooming Ruin).", "5pm": "\u2014 ~6.8 items \u00b7 2,930 checks: often a happy-hour bite (usually the 3 Meatballs), often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes an entr\u00e9e (usually the Fresh Catch), sometimes a shared snack or side (usually the Goat Cheese Fritters), and sometimes an appetizer (usually the Meatball App); to drink, often a glass of wine, sometimes a classic cocktail (Spicy Margherita), sometimes a wine flight, and sometimes a specialty cocktail (Blooming Ruin).", "6pm": "\u2014 ~6.7 items \u00b7 3,099 checks: one pasta (usually the Red Wine Infused Rigatoni Bolognese), often an entr\u00e9e (usually the Fresh Catch), often a shared snack or side (usually the Goat Cheese Fritters), often an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a spirit pour (usually the Titos).", "7pm": "\u2014 ~6.5 items \u00b7 2,591 checks: one pasta (usually the Red Wine Infused Rigatoni Bolognese), often a shared snack or side (usually the Goat Cheese Fritters), often an entr\u00e9e (usually the Fresh Catch), often an appetizer (usually the Meatball App), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a spirit pour (usually the Titos).", "8pm": "\u2014 ~5.6 items \u00b7 1,458 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), often an appetizer (usually the Meatball App), often a shared snack or side (usually the Goat Cheese Fritters), often an entr\u00e9e (usually the Fresh Catch), and sometimes a dessert (usually the S'mores Tart); to drink, often a glass of wine, sometimes a wine flight, sometimes a specialty cocktail (Blooming Ruin), and sometimes a spirit pour (usually the Titos).", "9pm": "\u2014 ~4.2 items \u00b7 403 checks: often a pasta (usually the Red Wine Infused Rigatoni Bolognese), sometimes a shared snack or side (usually the Goat Cheese Fritters), sometimes an appetizer (usually the Meatball App), and sometimes an entr\u00e9e (usually the Fresh Catch); to drink, often a glass of wine, sometimes a specialty cocktail (Blooming Ruin), and sometimes a wine flight.", "10pm": "\u2014 ~1.8 items \u00b7 50 checks: to drink, often two glasses of wine, sometimes a spirit pour (usually the Titos), and sometimes a specialty cocktail (Blooming Ruin)."}};
+const HUNT="#2F4734",OX="#6B2227",GOLD="#B08D2B",GREY="#9a9584",
+      BLUE="#3d6a7a",CLAY="#a8632f",SAGE="#6b8e6f";
+const SE=["Summer","Fall","Winter","Spring"];
+const DOW=["Tue","Wed","Thu","Fri","Sat","Sun"];
+const BANDS=D.party.bands;
+const BAND_COL={"Solo (1)":GREY,"2-top":HUNT,"3-top":BLUE,"4-top":GOLD,"5+ (group)":OX};
+const el=id=>document.getElementById(id);
+const money=v=>"$"+Math.round(v).toLocaleString();
+const pct=v=>v==null?"—":(v*100).toFixed(0)+"%";
+const tip=el("tip");
+
+function showTip(e,html){
+  tip.innerHTML=html;tip.style.display="block";
+  const touch=e.touches?e.touches[0]:e;
+  tip.style.left=Math.min(touch.clientX+12,window.innerWidth-235)+"px";
+  tip.style.top=Math.max(touch.clientY-80,8)+"px";
+}
+function hideTip(){tip.style.display="none";}
+document.addEventListener("touchstart",e=>{if(!e.target.closest("svg"))hideTip();},{passive:true});
+
+// ── OVERVIEW ──────────────────────────────────────────────────────
+(function(){
+const k=D.kpi,t=D.category;
+const cats=["Food","Wine","Liquor","NA Beverage","Beer"].filter(c=>t[c]);
+let h=`
+<p class="section-title">Overview</p>
+<p class="lede">${k.clean_checks.toLocaleString()} dine-in checks · ${k.period}</p>
+<div class="kgrid">
+  <div class="kbox hi"><div class="k">${money(k.net)}</div><div class="l">Net sales</div></div>
+  <div class="kbox hi"><div class="k">$${k.avg_check.toFixed(2)}</div><div class="l">Avg check</div></div>
+  <div class="kbox"><div class="k">${k.orders.toLocaleString()}</div><div class="l">Orders</div></div>
+  <div class="kbox"><div class="k">${k.guests.toLocaleString()}</div><div class="l">Guests</div></div>
+  <div class="kbox"><div class="k">$${k.per_guest.toFixed(2)}</div><div class="l">Per guest</div></div>
+  <div class="kbox warn"><div class="k">${k.clean_checks.toLocaleString()}</div><div class="l">Dine-in checks</div></div>
+</div>
+<div class="card" style="margin-top:14px">
+  <div class="card-title">Revenue by category</div>
+  ${cats.map(c=>{const v=t[c];const w=Math.round(v.pct);return`
+  <div class="hbar">
+    <div class="hbar-label"><span>${c}</span><span>${money(v.net)} · ${v.pct}%</span></div>
+    <div class="hbar-track">
+      <div class="hbar-fill" style="width:${w}%;background:${c==="Wine"?OX:c==="Liquor"?GOLD:HUNT}">${w>=12?v.pct+"%":""}</div>
+    </div>
+  </div>`}).join("")}
+</div>
+<div class="note"><b>Headline findings:</b><br>
+• Dinner carries 75% of revenue at $122 avg check vs $73 lunch<br>
+• Wine = 30% of net sales; all alcohol = 39%<br>
+• 74% of dinner tables take no dessert — biggest upsell opening<br>
+• Booked tables spend $64 more than walk-ins<br>
+• 4-top bottle attach is 64% higher than 2-top (18% vs 11%)</div>`;
+el("pg_ov").innerHTML=h;
+})();
+
+// ── AVG CHECK ────────────────────────────────────────────────────
+(function(){
+const ac=D.avg_check;
+const SE_KEYS=SE;
+const vals=DOW.map(d=>ac.by_day[d]);
+const maxV=Math.max(...vals);
+const dayBars=DOW.map((d,i)=>{const v=vals[i];const w=Math.round(v/maxV*100);
+  const top=v===maxV;
+  return`<div class="hbar">
+    <div class="hbar-label"><span>${d}</span><span>$${v.toFixed(0)}</span></div>
+    <div class="hbar-track">
+      <div class="hbar-fill" style="width:${w}%;background:${top?OX:HUNT}">
+        ${w>=18?"$"+v.toFixed(0):""}
+      </div>
+    </div>
+  </div>`;}).join("");
+
+// Day × season table
+const dxs=ac.day_x_season||{};
+const vals2=DOW.flatMap(d=>SE.map(s=>{const r=dxs[d+"|"+s];return r||null;})).filter(Boolean);
+const lo=Math.min(...vals2),hi=Math.max(...vals2);
+let tbl=`<div class="scroll"><table>
+  <thead><tr><th>Day</th>${SE.map(s=>`<th>${s.slice(0,3)}</th>`).join("")}</tr></thead><tbody>`;
+DOW.forEach(d=>{
+  tbl+=`<tr><td>${d}</td>`;
+  SE.forEach(s=>{const v=dxs[d+"|"+s];if(!v){tbl+=`<td>—</td>`;return;}
+    const heat=(v-lo)/(hi-lo||1);
+    const cls=heat>0.65?"heat-hi":heat<0.25?"heat-lo":"";
+    tbl+=`<td class="${cls}">$${v.toFixed(0)}</td>`;
+  });tbl+=`</tr>`;});
+tbl+=`</tbody></table></div>`;
+
+let h=`
+<p class="section-title">Average Check</p>
+<div class="kgrid" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
+  <div class="kbox hi" style="text-align:center;padding:16px">
+    <div class="k" style="font-size:32px">${money(ac.dinner)}</div>
+    <div class="l" style="font-size:12px">DINNER (exact)</div>
+  </div>
+  <div class="kbox" style="text-align:center;padding:16px;border-color:var(--gold)">
+    <div class="k" style="font-size:26px;color:var(--clay)">${money(ac.lunch)}</div>
+    <div class="l" style="font-size:12px">LUNCH (exact)</div>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">By day of week (exact)</div>
+  ${dayBars}
+</div>
+<div class="card">
+  <div class="card-title">Day × season matrix (exact)</div>
+  ${tbl}
+  <div class="lede" style="margin:8px 0 0;font-size:11.5px">Darker = higher avg check.</div>
+</div>`;
+el("pg_ac").innerHTML=h;
+})();
+
+// ── COMPOSITION ──────────────────────────────────────────────────
+(function(){
+const ac=D.comp_annual,sc=D.comp_seasonal,dc=D.comp_daypart;
+const des=D.dessert;
+const METS=[
+  ["Pasta",                "pasta"],
+  ["Entrée",               "entree"],
+  ["App or snack",         "apps_snack"],
+  ["Dessert (à la carte)", "dessert_alc"],
+  ["Any cocktail",         "liquor_any"],
+  ["Specialty craft",      "specialty"],
+  ["Wine — any",           "wine_any"],
+  ["— glass",              "wine_glass"],
+  ["— bottle",             "wine_bottle"],
+  ["— flight",             "wine_flight"],
+];
+// Annual + seasonal table
+let rows=METS.map(([lab,k])=>`<tr><td>${lab}</td>
+  <td><b>${ac[k]!=null?ac[k]+"%":"—"}</b></td>
+  ${SE.map(s=>`<td>${sc[s]&&sc[s][k]!=null?sc[s][k]+"%":"—"}</td>`).join("")}
+</tr>`).join("");
+// Add dessert total row
+rows+=`<tr><td>Dessert — total</td>
+  <td><b>${des.annual?des.annual.total_pct+"%" :"—"}</b></td>
+  ${SE.map(s=>`<td>${des.season[s]?des.season[s].total_pct+"%":"—"}</td>`).join("")}
+</tr>`;
+
+// Daypart table
+const dpMETS=METS.concat([["Dessert — total","__DT__"]]);
+let dprows=dpMETS.map(([lab,k])=>`<tr><td>${lab}</td>
+  ${["Dinner","Lunch","Brunch"].map(dp=>{
+    if(k==="__DT__")return`<td>${des.daypart[dp]?des.daypart[dp].total_pct+"%":"—"}</td>`;
+    if(k==="dessert_alc")return`<td>${des.daypart[dp]?des.daypart[dp].alacarte_pct+"%":"—"}</td>`;
+    return`<td>${dc[dp]&&dc[dp][k]!=null?dc[dp][k]+"%":"—"}</td>`;
+  }).join("")}
+</tr>`).join("");
+
+let h=`
+<p class="section-title">Check Composition</p>
+<p class="lede">% of checks containing each item. Wine % = penetration (≥1 drink), not revenue share.</p>
+<div class="card">
+  <div class="card-title">Annual vs each season</div>
+  <div class="scroll"><table>
+    <thead><tr><th>Metric</th><th>All</th>
+      ${SE.map(s=>`<th>${s.slice(0,3)}</th>`).join("")}
+    </tr></thead><tbody>${rows}</tbody></table></div>
+</div>
+<div class="card">
+  <div class="card-title">By service</div>
+  <div class="scroll"><table>
+    <thead><tr><th>Metric</th><th>Dinner</th><th>Lunch</th><th>Brunch</th></tr></thead>
+    <tbody>${dprows}</tbody></table></div>
+  <div class="lede" style="margin:8px 0 0;font-size:11.5px">Lunch is the only service where entrées beat pasta.</div>
+</div>`;
+el("pg_cx").innerHTML=h;
+})();
+
+// ── DESSERT ──────────────────────────────────────────────────────
+(function(){
+const des=D.dessert;const A=des.annual;
+function sBar(o){
+  if(!o)return"";
+  const alc=o.alacarte_pct,bun=o.included_pct||0,none=o.no_dessert_pct;
+  return`<div class="sbar">
+    <div class="sbar-seg" style="width:${alc}%;background:${HUNT}" title="à la carte ${alc}%">${alc>=8?alc+"%":""}</div>
+    <div class="sbar-seg" style="width:${bun}%;background:${GOLD}" title="bundled ${bun}%">${bun>=6?bun+"%":""}</div>
+    <div class="sbar-seg" style="width:${none}%;background:#e3dcc9;color:var(--muted)" title="none ${none}%">${none>=12?none+"%":""}</div>
+  </div>`;
+}
+let h=`
+<p class="section-title">Dessert</p>
+<p class="lede">The biggest upsell opening in the building.</p>
+<div class="kgrid" style="grid-template-columns:1fr 1fr">
+  <div class="kbox"><div class="k">${A.total_pct}%</div><div class="l">Total (all tables)</div></div>
+  <div class="kbox warn"><div class="k">${A.no_dessert_pct}%</div><div class="l">Take none</div></div>
+  <div class="kbox"><div class="k">${A.alacarte_pct}%</div><div class="l">À la carte</div></div>
+  <div class="kbox"><div class="k">${A.alc_conv_noincl}%</div><div class="l">Buy-rate*</div></div>
+</div>
+<div style="font-size:11px;color:var(--muted);margin:4px 0 14px">*Of non-bundled tables, % buying à la carte</div>
+<div class="legend"><span><span class="sw" style="background:${HUNT}"></span>À la carte</span>
+  <span><span class="sw" style="background:${GOLD}"></span>Bundled</span>
+  <span><span class="sw" style="background:#e3dcc9;border:1px solid var(--line)"></span>None</span></div>
+<div class="card" style="margin-top:10px">
+  <div class="card-title">By service</div>
+  ${["Dinner","Lunch","Brunch"].map(d=>`
+    <div class="sbar-label">${d}</div>${sBar(des.daypart[d])}`).join("")}
+</div>
+<div class="card">
+  <div class="card-title">By season</div>
+  ${SE.map(s=>`<div class="sbar-label">${s}</div>${sBar(des.season[s])}`).join("")}
+</div>
+<div class="card">
+  <div class="card-title">Dinner by season</div>
+  ${SE.map(s=>`<div class="sbar-label">Dinner · ${s}</div>${sBar(des.dp_season["Dinner|"+s])}`).join("")}
+</div>
+<div class="card">
+  <div class="card-title">By day of week</div>
+  ${["Tue","Wed","Thu","Fri","Sat","Sun"].map(d=>`<div class="sbar-label">${d}</div>${sBar(des.dow[d])}`).join("")}
+</div>
+<div class="note">Winter dinner is the peak dessert slot at 35.2% total — the room is already in a longer, more indulgent mood.</div>`;
+el("pg_des").innerHTML=h;
+})();
+
+// ── TIME OF DAY ──────────────────────────────────────────────────
+(function(){
+const tod=D.tod;
+const HRS=tod.hrs;const HL=tod.hrlab;
+const pcts=tod.covers_pct;const chks=tod.check;
+const GRP_COL={
+  "Pasta":HUNT,"Mains (entrée/sandwich)":SAGE,
+  "Starters & shares":BLUE,"Dessert":CLAY,
+  "Wine":OX,"Cocktails/spirits":GOLD,"Beer + NA":GREY
+};
+// Inline SVG bar chart
+const W=340,H=180,L=32,R=12,T=8,B=26;
+const x=(i,n)=>L+i*(W-L-R)/n+(W-L-R)/n/2;
+const yP=v=>H-B-v/22*(H-T-B);
+const yK=v=>H-B-(v-40)/(145-40)*(H-T-B);
+let svg='';
+[0,5,10,15,20].forEach(v=>{
+  svg+=`<line x1="${L}" y1="${yP(v)}" x2="${W-R}" y2="${yP(v)}" stroke="#e6ddc7"/>`;
+  svg+=`<text x="${L-2}" y="${yP(v)+3}" text-anchor="end" font-size="8" fill="${GREY}">${v}%</text>`;});
+[60,90,120].forEach(v=>svg+=`<text x="${W-R+2}" y="${yK(v)+3}" font-size="8" fill="#8a6d1f">$${v}</text>`);
+const bw=(W-L-R)/HRS.length*0.7;
+// 4pm line
+const i4=HRS.indexOf(16);if(i4>=0)svg+=`<line x1="${x(i4,HRS.length)-bw/2-2}" y1="${T}" x2="${x(i4,HRS.length)-bw/2-2}" y2="${H-B}" stroke="${OX}" stroke-width="1" opacity=".4"/>`;
+HRS.forEach((h,i)=>{
+  const v=parseFloat(pcts[h]);const xc=x(i,HRS.length);
+  svg+=`<rect x="${xc-bw/2}" y="${yP(v)}" width="${bw}" height="${H-B-yP(v)}" fill="${HUNT}" opacity=".85" rx="1"/>`;
+  if(v>=4)svg+=`<text x="${xc}" y="${yP(v)-2}" text-anchor="middle" font-size="7.5" font-weight="700" fill="${HUNT}">${v}%</text>`;
+  svg+=`<text x="${xc}" y="${H-B+13}" text-anchor="middle" font-size="8" fill="${GREY}">${HL[h]}</text>`;
+});
+// Check line
+let path=HRS.map((h,i)=>`${i?"L":"M"}${x(i,HRS.length).toFixed(1)},${yK(parseFloat(chks[h])).toFixed(1)}`).join(" ");
+svg+=`<path d="${path}" fill="none" stroke="${GOLD}" stroke-width="2"/>`;
+HRS.forEach((h,i)=>svg+=`<circle cx="${x(i,HRS.length)}" cy="${yK(chks[h])}" r="2.5" fill="${GOLD}"/>`);
+
+// When-ordered line chart (mini)
+const WHEN=[
+  ["glass of wine",OX,"Glass"],["specialty cocktail",GOLD,"Spec. cocktail"],
+  ["classic cocktail",CLAY,"Classic"],["dessert",HUNT,"Dessert"],
+  ["soda/tea/coffee",GREY,"Coffee/soda"],
+];
+const W2=320,H2=160,L2=28,R2=72,T2=8,B2=22;
+const x2=(i)=>L2+i*(W2-L2-R2)/(HRS.length-1);
+const y2=v=>H2-B2-v/55*(H2-T2-B2);
+let svg2='';
+[0,25,50].forEach(v=>{
+  svg2+=`<line x1="${L2}" y1="${y2(v)}" x2="${W2-R2}" y2="${y2(v)}" stroke="#e6ddc7"/>`;
+  svg2+=`<text x="${L2-2}" y="${y2(v)+3}" text-anchor="end" font-size="8" fill="${GREY}">${v}%</text>`;});
+WHEN.forEach(([key,col,lbl],si)=>{
+  const pts=HRS.map((h,i)=>{const v=tod.byhour[String(h)]&&tod.byhour[String(h)][key];return v!=null?[x2(i),y2(v)]:null;}).filter(Boolean);
+  if(!pts.length)return;
+  const d=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+  svg2+=`<path d="${d}" fill="none" stroke="${col}" stroke-width="1.8"/>`;
+  const last=pts[pts.length-1];
+  svg2+=`<text x="${last[0]+3}" y="${last[1]+4+(si%3)*10}" font-size="8.5" font-weight="700" fill="${col}">${lbl}</text>`;});
+HRS.forEach((h,i)=>{if(i%2===0||h===18)svg2+=`<text x="${x2(i)}" y="${H2-B2+12}" text-anchor="middle" font-size="8" fill="${GREY}">${HL[h]}</text>`;});
+
+let h=`
+<p class="section-title">Time of Day</p>
+<p class="lede">Bars = % of day's checks opening that hour. Gold line = modeled avg check.</p>
+<div class="card">
+  <div class="card-title">Covers & avg check by hour</div>
+  <svg viewBox="0 0 ${W} ${H}" style="width:100%">${svg}</svg>
+  <div class="legend">
+    <span><span class="sw" style="background:${HUNT}"></span>% of checks</span>
+    <span><span class="sw" style="background:${GOLD}"></span>Avg check ($)</span>
+    <span style="font-size:11px;color:var(--muted)">│ = 4pm split</span>
+  </div>
+</div>
+<div class="card">
+  <div class="card-title">What's ordered when</div>
+  <svg viewBox="0 0 ${W2} ${H2}" style="width:100%">${svg2}</svg>
+</div>
+<div class="note">6pm = 16% of all checks, peak avg check of $131. 5p–7p together = 45% of daily volume.</div>`;
+el("pg_tod").innerHTML=h;
+})();
+
+// ── PARTY SIZE ────────────────────────────────────────────────────
+(function(){
+const pa=D.party;const po=pa.overall;const bw=pa.booked;
+const LABS=pa.labels;
+function fv(v,i){return i===0?money(v):(v*100).toFixed(0)+"%";}
+const avg_checks=BANDS.map(b=>{const r=po["Avg check ($)"]&&po["Avg check ($)"][b];return r?r.v:0;});
+const maxAC=Math.max(...avg_checks);
+let acBars=BANDS.map((b,i)=>{const v=avg_checks[i];const w=Math.round(v/maxAC*100);
+  return`<div class="hbar">
+    <div class="hbar-label"><span style="color:${BAND_COL[b]};font-weight:700">${b}</span><span>$${Math.round(v)}</span></div>
+    <div class="hbar-track"><div class="hbar-fill" style="width:${w}%;background:${BAND_COL[b]}">${w>=18?"$"+Math.round(v):""}</div></div>
+  </div>`;}).join("");
+
+// Full metrics table
+let tbl=`<div class="scroll"><table>
+  <thead><tr><th>Metric</th>${BANDS.map(b=>`<th style="background:${BAND_COL[b]}">${b.split(" ")[0]}</th>`).join("")}</tr></thead><tbody>`;
+LABS.forEach((lab,i)=>{tbl+=`<tr><td>${lab}</td>${BANDS.map(b=>{
+  const r=po[lab]&&po[lab][b];const v=r?r.v:null;
+  return`<td>${v==null?"—":fv(v,i)}</td>`;}).join("")}</tr>`;});
+tbl+=`</tbody></table></div>`;
+
+// Booked vs walk-in
+let bwRows=LABS.map((lab,i)=>{const r=bw[lab];if(!r)return"";
+  const d=r.booked-r.walkin;const dstr=i===0?(d>=0?"+$":"-$")+Math.abs(Math.round(d)):(d>=0?"+":"")+Math.round(d*100)+"pp";
+  return`<tr><td>${lab}</td><td>${fv(r.walkin,i)}</td><td style="font-weight:700">${fv(r.booked,i)}</td>
+    <td class="${d>=0?"pos":"neg"}">${dstr}</td></tr>`;}).join("");
+
+let h=`
+<p class="section-title">Party Size</p>
+<p class="lede">${pa.total.toLocaleString()} checks joined to party size via SevenRooms (87% coverage).</p>
+<div class="card">
+  <div class="card-title">Avg check by party size</div>
+  ${acBars}
+</div>
+<div class="card">
+  <div class="card-title">All metrics by party size</div>
+  ${tbl}
+</div>
+<div class="card">
+  <div class="card-title">Booked vs walk-in</div>
+  <div class="scroll"><table>
+    <thead><tr><th>Metric</th><th>Walk-in</th><th>Booked</th><th>Δ</th></tr></thead>
+    <tbody>${bwRows}</tbody></table></div>
+</div>
+<div class="note"><b>4-top = bottle table.</b> Bottle attach: 11% at 2-tops → 18% at 4-tops (+64% relative). Booked tables spend $64 more and order dessert at 2× the rate.</div>`;
+el("pg_ps").innerHTML=h;
+})();
+
+// ── TABLE MIX ────────────────────────────────────────────────────
+(function(){
+const tm=D.table_mix;const BANDS2=tm.bands;
+let metric="tables_pct";
+function sBar(row){
+  if(!row)return`<div style="color:var(--muted);font-size:12px">n/a</div>`;
+  return`<div class="sbar">${BANDS2.map(b=>{
+    const v=row[b]?row[b][metric]:0;
+    return`<div class="sbar-seg" style="width:${v}%;background:${BAND_COL[b]}">${v>=10?v+"%":""}</div>`;
+  }).join("")}</div>`;
+}
+function buildHTML(){
+  const HLAB={11:"11a",12:"12p",13:"1p",14:"2p",15:"3p",16:"4p",17:"5p",18:"6p",19:"7p",20:"8p",21:"9p"};
+  return`
+<p class="section-title">Table Size Mix</p>
+<p class="lede">How the room fills by time and service. Toggle to see % of tables vs % of covers.</p>
+<div class="toggle" id="tm_tog">
+  <button class="on" data-m="tables_pct">% of tables</button>
+  <button data-m="covers_pct">% of covers</button>
+</div>
+<div class="legend" style="margin-bottom:14px">${BANDS2.map(b=>`<span><span class="sw" style="background:${BAND_COL[b]}"></span>${b}</span>`).join("")}</div>
+<div class="card">
+  <div class="card-title">By service</div>
+  ${["Dinner","Lunch","Brunch"].map(d=>`<div class="sbar-label">${d}</div>${sBar(tm.by_daypart[d])}`).join("")}
+</div>
+<div class="card">
+  <div class="card-title">By day of week</div>
+  ${["Tue","Wed","Thu","Fri","Sat","Sun"].map(d=>`<div class="sbar-label">${d}</div>${sBar(tm.by_dow[d])}`).join("")}
+</div>
+<div class="card">
+  <div class="card-title">By season</div>
+  ${SE.map(s=>`<div class="sbar-label">${s}</div>${sBar(tm.by_season[s])}`).join("")}
+</div>
+<div class="card">
+  <div class="card-title">By hour</div>
+  ${Object.keys(tm.by_hour).filter(h=>tm.by_hour[h]).sort((a,b)=>+a-+b).map(h=>`<div class="sbar-label">${HLAB[+h]||h}</div>${sBar(tm.by_hour[h])}`).join("")}
+</div>
+<div class="note">2-tops are 63–66% of tables in almost every slice. In the <b>covers view</b>, 5+ groups take a bigger share at peak evening hours even though they're a small share of seatings.</div>`;
+}
+function redraw(){
+  el("pg_tm").innerHTML=buildHTML();
+  const tog=el("tm_tog");if(!tog||typeof tog.querySelectorAll!=="function")return;
+  tog.querySelectorAll("button").forEach(btn=>btn.onclick=()=>{
+    metric=btn.dataset.m;
+    redraw();
+  });
+}
+redraw();
+})();
+
+// ── RESERVATIONS ─────────────────────────────────────────────────
+(function(){
+const sr=D.sr;
+const party=sr.party||[];
+let partytbl=`<div class="scroll"><table>
+  <thead><tr><th>Size</th><th>Parties</th><th>% parties</th><th>Covers</th><th>% covers</th></tr></thead><tbody>`;
+party.forEach(p=>{
+  if(!p)return;
+  partytbl+=`<tr><td>${p.size}</td><td>${p.res.toLocaleString()}</td>
+    <td>${(p.res/(sr.tot_res||1)*100).toFixed(1)}%</td>
+    <td>${p.cov.toLocaleString()}</td>
+    <td>${(p.cov/(sr.tot_cov||1)*100).toFixed(1)}%</td></tr>`;});
+partytbl+=`</tbody></table></div>`;
+let h=`
+<p class="section-title">Reservations</p>
+<p class="lede">SevenRooms Jun 2025–Jun 2026. Cross-validates with Toast within 1%.</p>
+<div class="kgrid">
+  <div class="kbox"><div class="k">${sr.tot_cov?sr.tot_cov.toLocaleString():"—"}</div><div class="l">Total covers</div></div>
+  <div class="kbox"><div class="k">${sr.avg_party||"—"}</div><div class="l">Avg party size</div></div>
+  <div class="kbox warn"><div class="k">${sr.tot_cov&&sr.walkin_cov?Math.round(sr.walkin_cov/sr.tot_cov*100)+"%":"—"}</div><div class="l">Walk-in covers</div></div>
+  <div class="kbox"><div class="k">${sr.spend_per_cover?"$"+sr.spend_per_cover.toFixed(2):"—"}</div><div class="l">Spend / cover</div></div>
+</div>
+<div class="card" style="margin-top:14px">
+  <div class="card-title">Booked vs walk-in</div>
+  <div class="scroll"><table>
+    <thead><tr><th></th><th>Walk-in</th><th>Booked</th></tr></thead><tbody>
+    <tr><td>Parties</td><td>${sr.walkin_res?sr.walkin_res.toLocaleString():"—"}</td><td>${sr.booked_res?sr.booked_res.toLocaleString():"—"}</td></tr>
+    <tr><td>Covers</td><td>${sr.walkin_cov?sr.walkin_cov.toLocaleString():"—"}</td><td>${sr.booked_cov?sr.booked_cov.toLocaleString():"—"}</td></tr>
+    <tr><td>Avg party</td><td>${sr.walkin_avg||"—"}</td><td style="font-weight:700">${sr.booked_avg||"—"}</td></tr>
+  </tbody></table></div>
+</div>
+<div class="card">
+  <div class="card-title">Party size distribution</div>
+  ${partytbl}
+</div>
+<div class="note">
+  ${sr.funnel?`Cancel rate ${sr.funnel.cancel_rate}% · No-show rate ${sr.funnel.noshow_rate}%.<br>`:""}
+  87% of completed reservations matched to a POS check via Order # + date.
+</div>`;
+el("pg_sr").innerHTML=h;
+})();
+
+// ── SLOT BROWSER ─────────────────────────────────────────────────
+(function(){
+const prose=D.prose;const labels=Object.keys(prose);
+const GROUPS={
+  "By service":["Dinner","Lunch","Brunch"],
+  "By season":["Summer","Fall","Winter","Spring"],
+  "By day":["Tue","Wed","Thu","Fri","Sat","Sun"],
+  "Dinner × day":labels.filter(l=>/^(Tue|Wed|Thu|Fri|Sat|Sun) dinner$/.test(l)),
+  "Lunch × day": labels.filter(l=>/^(Tue|Wed|Thu|Fri|Sat|Sun) lunch$/.test(l)),
+  "Dinner × season":labels.filter(l=>/dinner$/.test(l)&&/Summer|Fall|Winter|Spring/.test(l)),
+};
+let h=`
+<p class="section-title">Slot Browser</p>
+<p class="lede">Every representative check, slot by slot. 117 slots total.</p>
+<select id="sl_grp">
+  ${Object.keys(GROUPS).map(g=>`<option>${g}</option>`).join("")}
+</select>
+<div id="sl_cards"></div>`;
+el("pg_sl").innerHTML=h;
+function render(){
+  const grp=el("sl_grp").value;const slots=GROUPS[grp]||[];
+  el("sl_cards").innerHTML=slots.map(lbl=>{
+    const p=prose[lbl];if(!p)return"";
+    const text=p.replace(/^\*\*[^*]+\*\*\s*—\s*/,"").replace(/\*\*/g,"");
+    return`<div class="prose-card">
+      <div class="prose-label">${lbl}</div>
+      <div class="prose-text">${text}</div>
+    </div>`;}).join("");
+}
+el("sl_grp").onchange=render; render();
+})();
+
+// ── NAV ──────────────────────────────────────────────────────────
+const pages=document.querySelectorAll(".page");
+const btns=document.querySelectorAll(".bnav-item");
+function nav(id){
+  pages.forEach(p=>p.classList.remove("on"));
+  btns.forEach(b=>b.classList.remove("on"));
+  el("pg_"+id).classList.add("on");
+  document.querySelector(`.bnav-item[data-pg="${id}"]`).classList.add("on");
+  window.scrollTo(0,0);
+}
+btns.forEach(b=>b.onclick=()=>nav(b.dataset.pg));
+nav("ov");
+</script>
