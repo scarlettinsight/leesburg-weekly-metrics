@@ -749,6 +749,7 @@ ${[[k.n_items,'Priced items'],['$'+k.total_contrib.toLocaleString(),'Total contr
 <div class="card"><h3 class="blk" style="margin-top:0">Menu-engineering map <span style="font-size:11px;color:var(--muted);font-weight:400">— x = units sold · y = contribution $/item · color = quadrant</span></h3>
 <svg id="me_scatter" viewBox="0 0 800 380" width="100%"></svg>
 <div class="legend">${Object.entries(QC).map(([q,c])=>`<span><span class="sw" style="background:${c}"></span>${q}</span>`).join('')}</div></div>
+<div id="me_tooltip" style="display:none;position:fixed;z-index:100;background:var(--hunt,#2b2b2b);color:#fff;border-radius:8px;padding:9px 12px;font-size:12px;line-height:1.5;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.28);max-width:230px"></div>
 <div class="two">
 <div class="card"><h3 class="blk" style="margin-top:0">Puzzles — high margin, low volume (PUSH)</h3>
 <table><thead><tr><th>Item</th><th>Sold</th><th>Margin</th><th>$/item</th></tr></thead><tbody>
@@ -772,9 +773,26 @@ el('pane_menueng').innerHTML=h;
  let g='';const mx=sx(ME.med_sold),my=sy(ME.med_per);
  g+=`<line x1="${mx}" y1="${T}" x2="${mx}" y2="${H-B}" stroke="#d8cdb6" stroke-dasharray="4 3"/><line x1="${L}" y1="${my}" x2="${W-R}" y2="${my}" stroke="#d8cdb6" stroke-dasharray="4 3"/>`;
  g+=`<text x="${L}" y="${H-6}" font-size="9" fill="${GREY}">fewer sold</text><text x="${W-R}" y="${H-6}" text-anchor="end" font-size="9" fill="${GREY}">more sold →</text><text x="6" y="${T+8}" font-size="9" fill="${GREY}">$/item</text>`;
- its.forEach(d=>{const c=QC[d.quad]||GREY;g+=`<circle cx="${sx(d.sold).toFixed(1)}" cy="${sy(d.per).toFixed(1)}" r="4" fill="${c}" opacity="0.82"><title>${d.name}: ${d.sold} sold · $${d.per.toFixed(2)}/item · ${d.margin}% margin</title></circle>`;});
+ its.forEach((d,i)=>{const c=QC[d.quad]||GREY;g+=`<circle class="me-dot" data-i="${i}" cx="${sx(d.sold).toFixed(1)}" cy="${sy(d.per).toFixed(1)}" r="4" fill="${c}" opacity="0.82" style="cursor:pointer"></circle>`;});
  its.filter(d=>d.per>=ME.med_per*1.7||d.sold>=xmax*0.55).slice(0,9).forEach(d=>{g+=`<text x="${(sx(d.sold)+6).toFixed(1)}" y="${(sy(d.per)-4).toFixed(1)}" font-size="8.5" fill="${INK}">${d.name.slice(0,20)}</text>`;});
- el('me_scatter').innerHTML=g;})();
+ el('me_scatter').innerHTML=g;
+ const tip=el('me_tooltip');
+ const fmtMoney=v=>'$'+Number(v).toLocaleString(undefined,{maximumFractionDigits:0});
+ el('me_scatter').querySelectorAll('.me-dot').forEach(node=>{
+   node.addEventListener('mouseenter',ev=>{const d=its[+node.getAttribute('data-i')];const c=QC[d.quad]||GREY;
+     tip.innerHTML=`<div style="font-weight:700;margin-bottom:4px">${d.name}</div>`
+       +`<div style="color:${c};font-weight:600;margin-bottom:5px">${d.quad}${d.type?' · '+d.type:''}</div>`
+       +`<div>${d.sold.toLocaleString()} sold · $${d.per.toFixed(2)}/item</div>`
+       +`<div>${d.margin}% margin · ${fmtMoney(d.contrib)} contribution</div>`
+       +`<div style="opacity:.75;margin-top:3px">Revenue ${fmtMoney(d.rev)} · Cost ${fmtMoney(d.cost)}</div>`;
+     tip.style.display='block';});
+   node.addEventListener('mousemove',ev=>{const pad=14;let x=ev.clientX+pad,y=ev.clientY+pad;
+     const w=tip.offsetWidth,ht=tip.offsetHeight;
+     if(x+w>window.innerWidth-8)x=ev.clientX-w-pad;
+     if(y+ht>window.innerHeight-8)y=ev.clientY-ht-pad;
+     tip.style.left=x+'px';tip.style.top=y+'px';});
+   node.addEventListener('mouseleave',()=>{tip.style.display='none';});
+ });})();
 hbars('me_cat', ME.by_cat.slice(0,9).map(c=>({l:c.type,v:c.contrib,c:HUNT})), r=>`$${r.v.toLocaleString()} · ${(ME.by_cat.find(x=>x.type===r.l)||{}).margin}%`);
 })();
 
