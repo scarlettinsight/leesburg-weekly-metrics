@@ -857,7 +857,8 @@ function renderSeason(S){
    const xmin=Math.min(...xs)-1,xmax=Math.max(...xs)+1,ymax=Math.max(...ys,1)*1.05;
    const sx=v=>L+(v-xmin)/(xmax-xmin)*(W-L-R), sy=v=>H-B-v/ymax*(H-T-B);
    let g='';
-   for(let p=Math.ceil(xmin);p<=xmax;p++){const x=sx(p);g+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${H-B}" stroke="#efe9db"/><text x="${x}" y="${H-8}" text-anchor="middle" font-size="9" fill="${GREY}">$${p}</text>`;}
+   const rng=xmax-xmin, step=rng>60?10:rng>30?5:rng>12?2:1, p0=Math.ceil(xmin/step)*step;
+   for(let p=p0;p<=xmax;p+=step){const x=sx(p);g+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${H-B}" stroke="#efe9db"/><text x="${x}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="${GREY}">$${p}</text>`;}
    g+=`<text x="6" y="${T+8}" font-size="9" fill="${GREY}">units</text>`;
    its.forEach((d,i)=>{const c=wc(d.color);g+=`<circle class="fl-dot" data-i="${i}" cx="${sx(d.price).toFixed(1)}" cy="${sy(d.units).toFixed(1)}" r="5" fill="${c}" opacity="0.82" stroke="${d.verified?INK:'none'}" stroke-width="${d.verified?1:0}" style="cursor:pointer"></circle>`;});
    el('fl_scatter').innerHTML=g;
