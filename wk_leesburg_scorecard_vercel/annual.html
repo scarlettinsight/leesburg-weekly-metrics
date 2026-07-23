@@ -890,15 +890,22 @@ function renderSeason(S){
    const ckey=d=>d.color||'__other__';
    const present=order.filter(k=>its0.some(d=>ckey(d)===k));
    const active=new Set(present);
+   // concept filter (cleaned + merged display labels)
+   const CMERGE={'Cab Reserve':'Cabernet Reserve','Pinot Envy A Dbb Bi':'Pinot Envy','Whiskey Etl Of Stagg':'Whiskey','Whiskey Etl Mbs Stagg':'Whiskey'};
+   const CLEAN={"You Re Rh Ne Believable":"You're Rhône-Believable","Run For The Ros S":"Run for the Rosés","Bubble Icious":"Bubble-icious","Hh Spritz":"HH Spritz","F Ing Merlot":"F#$%ing Merlot","A Little":"A Little TLC","Gl Villa Wolf Pinot Noir":"Villa Wolf Pinot Noir"};
+   const clabel=c=>{c=CMERGE[c]||c;return CLEAN[c]||c;};
+   const cmap={};its0.forEach(d=>{const L=clabel(d.concept);cmap[L]=(cmap[L]||0)+1;});
+   const conceptOpts=Object.keys(cmap).map(L=>({label:L,n:cmap[L]})).sort((a,b)=>b.n-a.n||a.label.localeCompare(b.label));
+   let selConcept='__all__';
    const tip=el('fl_tooltip');
    function draw(){
      let g='';
      const rng=xmax-xmin, step=rng>60?10:rng>30?5:rng>12?2:1, p0=Math.ceil(xmin/step)*step;
      for(let p=p0;p<=xmax;p+=step){const x=sx(p);g+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${H-B}" stroke="#efe9db"/><text x="${x}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="${GREY}">$${p}</text>`;}
      g+=`<text x="6" y="${T+8}" font-size="9" fill="${GREY}">units</text>`;
-     const shown=its0.map((d,i)=>[d,i]).filter(p=>active.has(ckey(p[0])));
+     const shown=its0.map((d,i)=>[d,i]).filter(p=>active.has(ckey(p[0]))&&(selConcept==='__all__'||clabel(p[0].concept)===selConcept));
      shown.forEach(p=>{const d=p[0],i=p[1],c=wc(d.color);g+=`<circle class="fl-dot" data-i="${i}" cx="${sx(d.price).toFixed(1)}" cy="${sy(d.units).toFixed(1)}" r="5" fill="${c}" opacity="0.82" stroke="${d.verified?INK:'none'}" stroke-width="${d.verified?1:0}" style="cursor:pointer"></circle>`;});
-     if(!shown.length)g+=`<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="12" fill="${GREY}">No flights — pick a color above</text>`;
+     if(!shown.length)g+=`<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="12" fill="${GREY}">No flights — adjust the filters above</text>`;
      el('fl_scatter').innerHTML=g;
      el('fl_scatter').querySelectorAll('.fl-dot').forEach(node=>{
        node.addEventListener('mouseenter',()=>{const d=its0[+node.getAttribute('data-i')];
@@ -914,10 +921,14 @@ function renderSeason(S){
        node.addEventListener('mouseleave',()=>{tip.style.display='none';});
      });
    }
+   const esc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
    function chips(){
      const actBtn=(a,t)=>`<button data-act="${a}" style="padding:4px 9px;border-radius:8px;border:1px solid #d8cdb6;background:#faf7ef;color:${INK};font-size:11px;cursor:pointer">${t}</button>`;
      let s=actBtn('all','All')+actBtn('none','None')+`<span style="width:1px;height:15px;background:#e2d9c3;margin:0 3px"></span>`;
      present.forEach(k=>{const on=active.has(k),sw=(k==='__other__')?GREY:wc(k);s+=`<button data-c="${k}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:14px;border:1px solid ${on?'transparent':'#d8cdb6'};background:${on?'#f3ede0':'#fff'};color:${on?INK:'#8a8578'};font-size:12px;cursor:pointer"><span style="width:9px;height:9px;border-radius:50%;background:${sw};display:inline-block;opacity:${on?1:.4}"></span>${CLAB[k]}</button>`;});
+     s+=`<span style="width:1px;height:15px;background:#e2d9c3;margin:0 3px"></span><span style="font-size:11px;color:${GREY}">concept</span>`;
+     s+=`<select id="fl_cf" style="padding:4px 8px;border:1px solid #d8cdb6;border-radius:8px;font-size:12px;background:#fff;max-width:220px"><option value="__all__"${selConcept==='__all__'?' selected':''}>All concepts (${its0.length})</option>`
+       +conceptOpts.map(o=>`<option value="${esc(o.label)}"${o.label===selConcept?' selected':''}>${o.label} (${o.n})</option>`).join('')+`</select>`;
      fbar.innerHTML=s;
    }
    fbar.onclick=ev=>{const b=ev.target.closest('button');if(!b)return;
@@ -926,6 +937,7 @@ function renderSeason(S){
      else if(a==='none')active.clear();
      else if(c){active.has(c)?active.delete(c):active.add(c);}
      chips();draw();};
+   fbar.onchange=ev=>{if(ev.target&&ev.target.id==='fl_cf'){selConcept=ev.target.value;draw();}};
    chips();draw();
   })();
   // concept drilldown
