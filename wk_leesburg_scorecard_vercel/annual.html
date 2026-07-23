@@ -749,6 +749,7 @@ ${[[k.n_items,'Priced items'],['$'+k.total_contrib.toLocaleString(),'Total contr
   .map(x=>`<div class="kbox${x[2]?' warn':''}"><div class="k">${x[0]}</div><div class="l">${x[1]}</div></div>`).join('')}
 </div>
 <div class="card"><h3 class="blk" style="margin-top:0">Menu-engineering map <span style="font-size:11px;color:var(--muted);font-weight:400">— x = units sold · y = contribution $/item · color = quadrant</span></h3>
+<div id="me_filter" style="display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 12px;align-items:center;font-family:inherit"></div>
 <svg id="me_scatter" viewBox="0 0 800 380" width="100%"></svg>
 <div class="legend">${Object.entries(QC).map(([q,c])=>`<span><span class="sw" style="background:${c}"></span>${q}</span>`).join('')}</div></div>
 <div id="me_tooltip" style="display:none;position:fixed;z-index:100;background:var(--hunt,#2b2b2b);color:#fff;border-radius:8px;padding:9px 12px;font-size:12px;line-height:1.5;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.28);max-width:230px"></div>
@@ -772,32 +773,57 @@ el('pane_menueng').innerHTML=h;
 (function(){const W=800,H=380,L=48,R=16,T=14,B=34;const its=ME.items;
  const xmax=Math.max(...its.map(d=>d.sold)),ymax=Math.max(...its.map(d=>d.per)),ymin=Math.min(...its.map(d=>d.per),0);
  const sx=v=>L+Math.sqrt(v)/Math.sqrt(xmax)*(W-L-R), sy=v=>H-B-(v-ymin)/(ymax-ymin)*(H-T-B);
- let g='';const mx=sx(ME.med_sold),my=sy(ME.med_per);
- g+=`<line x1="${mx}" y1="${T}" x2="${mx}" y2="${H-B}" stroke="#d8cdb6" stroke-dasharray="4 3"/><line x1="${L}" y1="${my}" x2="${W-R}" y2="${my}" stroke="#d8cdb6" stroke-dasharray="4 3"/>`;
- g+=`<text x="${L}" y="${H-6}" font-size="9" fill="${GREY}">fewer sold</text><text x="${W-R}" y="${H-6}" text-anchor="end" font-size="9" fill="${GREY}">more sold →</text><text x="6" y="${T+8}" font-size="9" fill="${GREY}">$/item</text>`;
- its.forEach((d,i)=>{const c=QC[d.quad]||GREY;g+=`<circle class="me-dot" data-i="${i}" cx="${sx(d.sold).toFixed(1)}" cy="${sy(d.per).toFixed(1)}" r="4" fill="${c}" opacity="0.82" style="cursor:pointer"></circle>`;});
- its.filter(d=>d.per>=ME.med_per*1.7||d.sold>=xmax*0.55).slice(0,9).forEach(d=>{g+=`<text x="${(sx(d.sold)+6).toFixed(1)}" y="${(sy(d.per)-4).toFixed(1)}" font-size="8.5" fill="${INK}">${d.name.slice(0,20)}</text>`;});
- el('me_scatter').innerHTML=g;
+ const mx=sx(ME.med_sold),my=sy(ME.med_per);
  const tip=el('me_tooltip');
  const fmtMoney=v=>'$'+Number(v).toLocaleString(undefined,{maximumFractionDigits:0});
- el('me_scatter').querySelectorAll('.me-dot').forEach(node=>{
-   node.addEventListener('mouseenter',ev=>{const d=its[+node.getAttribute('data-i')];const c=QC[d.quad]||GREY;
-     tip.innerHTML=`<div style="font-weight:700;margin-bottom:4px">${d.name}</div>`
-       +`<div style="color:${c};font-weight:600;margin-bottom:5px">${d.quad}${d.type?' · '+d.type:''}</div>`
-       +`<div>${d.sold.toLocaleString()} sold · $${d.per.toFixed(2)}/item</div>`
-       +`<div>${d.margin}% margin · ${fmtMoney(d.contrib)} contribution</div>`
-       +`<div style="opacity:.75;margin-top:3px">Revenue ${fmtMoney(d.rev)} · Cost ${fmtMoney(d.cost)}</div>`;
-     tip.style.display='block';});
-   node.addEventListener('mousemove',ev=>{const pad=14;let x=ev.clientX+pad,y=ev.clientY+pad;
-     const w=tip.offsetWidth,ht=tip.offsetHeight;
-     if(x+w>window.innerWidth-8)x=ev.clientX-w-pad;
-     if(y+ht>window.innerHeight-8)y=ev.clientY-ht-pad;
-     tip.style.left=x+'px';tip.style.top=y+'px';});
-   node.addEventListener('mouseleave',()=>{tip.style.display='none';});
- });})();
+ const DRINK=new Set(['Wine','Cocktails','Bar Cocktails']);
+ const norm=t=>t?t.charAt(0).toUpperCase()+t.slice(1):t;
+ const allTypes=[...new Set(its.map(d=>d.type).filter(Boolean))].sort((a,b)=>((DRINK.has(a)?1:0)-(DRINK.has(b)?1:0))||a.localeCompare(b));
+ const active=new Set(allTypes);
+ function draw(){
+   let g=`<line x1="${mx}" y1="${T}" x2="${mx}" y2="${H-B}" stroke="#d8cdb6" stroke-dasharray="4 3"/><line x1="${L}" y1="${my}" x2="${W-R}" y2="${my}" stroke="#d8cdb6" stroke-dasharray="4 3"/>`;
+   g+=`<text x="${L}" y="${H-6}" font-size="9" fill="${GREY}">fewer sold</text><text x="${W-R}" y="${H-6}" text-anchor="end" font-size="9" fill="${GREY}">more sold →</text><text x="6" y="${T+8}" font-size="9" fill="${GREY}">$/item</text>`;
+   const shown=its.map((d,i)=>[d,i]).filter(p=>active.has(p[0].type));
+   shown.forEach(p=>{const d=p[0],i=p[1],c=QC[d.quad]||GREY;g+=`<circle class="me-dot" data-i="${i}" cx="${sx(d.sold).toFixed(1)}" cy="${sy(d.per).toFixed(1)}" r="4" fill="${c}" opacity="0.82" style="cursor:pointer"></circle>`;});
+   shown.filter(p=>p[0].per>=ME.med_per*1.7||p[0].sold>=xmax*0.55).slice(0,9).forEach(p=>{const d=p[0];g+=`<text x="${(sx(d.sold)+6).toFixed(1)}" y="${(sy(d.per)-4).toFixed(1)}" font-size="8.5" fill="${INK}">${d.name.slice(0,20)}</text>`;});
+   if(!shown.length)g+=`<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="12" fill="${GREY}">No items — pick a type above</text>`;
+   el('me_scatter').innerHTML=g;
+   el('me_scatter').querySelectorAll('.me-dot').forEach(node=>{
+     node.addEventListener('mouseenter',ev=>{const d=its[+node.getAttribute('data-i')];const c=QC[d.quad]||GREY;
+       tip.innerHTML=`<div style="font-weight:700;margin-bottom:4px">${d.name}</div>`
+         +`<div style="color:${c};font-weight:600;margin-bottom:5px">${d.quad}${d.type?' · '+norm(d.type):''}</div>`
+         +`<div>${d.sold.toLocaleString()} sold · $${d.per.toFixed(2)}/item</div>`
+         +`<div>${d.margin}% margin · ${fmtMoney(d.contrib)} contribution</div>`
+         +`<div style="opacity:.75;margin-top:3px">Revenue ${fmtMoney(d.rev)} · Cost ${fmtMoney(d.cost)}</div>`;
+       tip.style.display='block';});
+     node.addEventListener('mousemove',ev=>{const pad=14;let x=ev.clientX+pad,y=ev.clientY+pad;
+       const w=tip.offsetWidth,ht=tip.offsetHeight;
+       if(x+w>window.innerWidth-8)x=ev.clientX-w-pad;
+       if(y+ht>window.innerHeight-8)y=ev.clientY-ht-pad;
+       tip.style.left=x+'px';tip.style.top=y+'px';});
+     node.addEventListener('mouseleave',()=>{tip.style.display='none';});
+   });
+ }
+ const fbar=el('me_filter');
+ const actBtn=(act,txt)=>`<button data-act="${act}" style="padding:4px 9px;border-radius:8px;border:1px solid #d8cdb6;background:#faf7ef;color:${INK};font-size:11px;cursor:pointer">${txt}</button>`;
+ function renderChips(){
+   let s=actBtn('all','All')+actBtn('food','Food')+actBtn('drinks','Drinks')+actBtn('none','None');
+   s+=`<span style="width:1px;height:15px;background:#e2d9c3;margin:0 3px"></span>`;
+   allTypes.forEach(t=>{const on=active.has(t);s+=`<button data-type="${t}" style="padding:4px 10px;border-radius:14px;border:1px solid ${on?'transparent':'#d8cdb6'};background:${on?HUNT:'#fff'};color:${on?'#fff':'#8a8578'};font-size:12px;cursor:pointer">${norm(t)}</button>`;});
+   fbar.innerHTML=s;
+ }
+ fbar.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;
+   const act=b.getAttribute('data-act'),ty=b.getAttribute('data-type');
+   if(act==='all')allTypes.forEach(t=>active.add(t));
+   else if(act==='none')active.clear();
+   else if(act==='food'){active.clear();allTypes.forEach(t=>{if(!DRINK.has(t))active.add(t);});}
+   else if(act==='drinks'){active.clear();allTypes.forEach(t=>{if(DRINK.has(t))active.add(t);});}
+   else if(ty){active.has(ty)?active.delete(ty):active.add(ty);}
+   renderChips();draw();});
+ renderChips();draw();
+})();
 hbars('me_cat', ME.by_cat.slice(0,9).map(c=>({l:c.type,v:c.contrib,c:HUNT})), r=>`$${r.v.toLocaleString()} · ${(ME.by_cat.find(x=>x.type===r.l)||{}).margin}%`);
 })();
-
 
 // ── FLIGHTS ──────────────────────────────────────────────────────────
 (function(){
