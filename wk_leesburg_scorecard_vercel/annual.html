@@ -849,6 +849,7 @@ ${seasons.map((s,i)=>`<button class="fl-season" data-s="${s}" style="padding:6px
 <div class="card"><h3 class="blk" style="margin-top:0">Region by sales <span style="font-size:11px;color:var(--muted);font-weight:400">— verified-composition iterations only</span></h3><div id="fl_region"></div></div>
 <div class="card"><h3 class="blk" style="margin-top:0">Grape / blend by sales <span style="font-size:11px;color:var(--muted);font-weight:400">— verified only</span></h3><div id="fl_grape"></div></div></div>
 <div class="card"><h3 class="blk" style="margin-top:0">Price vs sales by flight <span style="font-size:11px;color:var(--muted);font-weight:400">— each dot a flight · x = price · y = units sold · color = lead wine · outlined = exact composition · hover for detail</span></h3>
+<div id="fl_filter" style="display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 12px;align-items:center;font-family:inherit"></div>
 <svg id="fl_scatter" viewBox="0 0 800 360" width="100%"></svg>
 <div id="fl_tooltip" style="display:none;position:fixed;z-index:100;background:var(--hunt,#2b2b2b);color:#fff;border-radius:8px;padding:9px 12px;font-size:12px;line-height:1.5;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.28);max-width:260px"></div></div>
 <div class="two">
@@ -877,32 +878,56 @@ function renderSeason(S){
   hbars('fl_grape',F.grape_by_sales.map(x=>({l:x.k,v:x.u,c:OX})),r=>r.v.toLocaleString());
   el('fl_region_lift').innerHTML=liftTable(F.region_lift,'Region');
   el('fl_grape_lift').innerHTML=liftTable(F.grape_lift,'Grape');
-  // scatter
-  (function(){const W=800,H=360,L=52,R=18,T=16,B=40;const its=F.scatter.filter(d=>d.price>0);
-   if(!its.length){el('fl_scatter').innerHTML='';return;}
-   const xs=its.map(d=>d.price),ys=its.map(d=>d.units);
+  // scatter (with lead-wine-color filter)
+  (function(){const W=800,H=360,L=52,R=18,T=16,B=40;const its0=F.scatter.filter(d=>d.price>0);
+   const fbar=el('fl_filter');
+   if(!its0.length){el('fl_scatter').innerHTML='';if(fbar)fbar.innerHTML='';return;}
+   const xs=its0.map(d=>d.price),ys=its0.map(d=>d.units);
    const xmin=Math.min(...xs)-1,xmax=Math.max(...xs)+1,ymax=Math.max(...ys,1)*1.05;
    const sx=v=>L+(v-xmin)/(xmax-xmin)*(W-L-R), sy=v=>H-B-v/ymax*(H-T-B);
-   let g='';
-   const rng=xmax-xmin, step=rng>60?10:rng>30?5:rng>12?2:1, p0=Math.ceil(xmin/step)*step;
-   for(let p=p0;p<=xmax;p+=step){const x=sx(p);g+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${H-B}" stroke="#efe9db"/><text x="${x}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="${GREY}">$${p}</text>`;}
-   g+=`<text x="6" y="${T+8}" font-size="9" fill="${GREY}">units</text>`;
-   its.forEach((d,i)=>{const c=wc(d.color);g+=`<circle class="fl-dot" data-i="${i}" cx="${sx(d.price).toFixed(1)}" cy="${sy(d.units).toFixed(1)}" r="5" fill="${c}" opacity="0.82" stroke="${d.verified?INK:'none'}" stroke-width="${d.verified?1:0}" style="cursor:pointer"></circle>`;});
-   el('fl_scatter').innerHTML=g;
+   const CLAB={red:'Red',white:'White',rose:'Rosé',sparkling:'Sparkling',orange:'Orange',__other__:'Other (spirits / unrecovered)'};
+   const order=['red','white','rose','sparkling','orange','__other__'];
+   const ckey=d=>d.color||'__other__';
+   const present=order.filter(k=>its0.some(d=>ckey(d)===k));
+   const active=new Set(present);
    const tip=el('fl_tooltip');
-   el('fl_scatter').querySelectorAll('.fl-dot').forEach(node=>{
-     node.addEventListener('mouseenter',()=>{const d=its[+node.getAttribute('data-i')];
-       tip.innerHTML=`<div style="font-weight:700;margin-bottom:3px">${d.item}</div>`
-        +`<div style="margin-bottom:4px">$${d.price} · ${d.units.toLocaleString()} sold · ${d.verified?'menu-verified':'wines not yet recovered'}</div>`
-        +`<div style="opacity:.85">${(d.colors||[]).join(', ')||'—'}</div>`
-        +`<div style="opacity:.7;font-size:11px">${(d.regions||[]).slice(0,4).join(' · ')}</div>`;
-       tip.style.display='block';});
-     node.addEventListener('mousemove',ev=>{const pad=14;let x=ev.clientX+pad,y=ev.clientY+pad;
-       if(x+tip.offsetWidth>window.innerWidth-8)x=ev.clientX-tip.offsetWidth-pad;
-       if(y+tip.offsetHeight>window.innerHeight-8)y=ev.clientY-tip.offsetHeight-pad;
-       tip.style.left=x+'px';tip.style.top=y+'px';});
-     node.addEventListener('mouseleave',()=>{tip.style.display='none';});
-   });})();
+   function draw(){
+     let g='';
+     const rng=xmax-xmin, step=rng>60?10:rng>30?5:rng>12?2:1, p0=Math.ceil(xmin/step)*step;
+     for(let p=p0;p<=xmax;p+=step){const x=sx(p);g+=`<line x1="${x}" y1="${T}" x2="${x}" y2="${H-B}" stroke="#efe9db"/><text x="${x}" y="${H-8}" text-anchor="middle" font-size="9.5" fill="${GREY}">$${p}</text>`;}
+     g+=`<text x="6" y="${T+8}" font-size="9" fill="${GREY}">units</text>`;
+     const shown=its0.map((d,i)=>[d,i]).filter(p=>active.has(ckey(p[0])));
+     shown.forEach(p=>{const d=p[0],i=p[1],c=wc(d.color);g+=`<circle class="fl-dot" data-i="${i}" cx="${sx(d.price).toFixed(1)}" cy="${sy(d.units).toFixed(1)}" r="5" fill="${c}" opacity="0.82" stroke="${d.verified?INK:'none'}" stroke-width="${d.verified?1:0}" style="cursor:pointer"></circle>`;});
+     if(!shown.length)g+=`<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="12" fill="${GREY}">No flights — pick a color above</text>`;
+     el('fl_scatter').innerHTML=g;
+     el('fl_scatter').querySelectorAll('.fl-dot').forEach(node=>{
+       node.addEventListener('mouseenter',()=>{const d=its0[+node.getAttribute('data-i')];
+         tip.innerHTML=`<div style="font-weight:700;margin-bottom:3px">${d.item}</div>`
+          +`<div style="margin-bottom:4px">$${d.price} · ${d.units.toLocaleString()} sold · ${d.verified?'menu-verified':'wines not yet recovered'}</div>`
+          +`<div style="opacity:.85">${(d.colors||[]).join(', ')||'—'}</div>`
+          +`<div style="opacity:.7;font-size:11px">${(d.regions||[]).slice(0,4).join(' · ')}</div>`;
+         tip.style.display='block';});
+       node.addEventListener('mousemove',ev=>{const pad=14;let x=ev.clientX+pad,y=ev.clientY+pad;
+         if(x+tip.offsetWidth>window.innerWidth-8)x=ev.clientX-tip.offsetWidth-pad;
+         if(y+tip.offsetHeight>window.innerHeight-8)y=ev.clientY-tip.offsetHeight-pad;
+         tip.style.left=x+'px';tip.style.top=y+'px';});
+       node.addEventListener('mouseleave',()=>{tip.style.display='none';});
+     });
+   }
+   function chips(){
+     const actBtn=(a,t)=>`<button data-act="${a}" style="padding:4px 9px;border-radius:8px;border:1px solid #d8cdb6;background:#faf7ef;color:${INK};font-size:11px;cursor:pointer">${t}</button>`;
+     let s=actBtn('all','All')+actBtn('none','None')+`<span style="width:1px;height:15px;background:#e2d9c3;margin:0 3px"></span>`;
+     present.forEach(k=>{const on=active.has(k),sw=(k==='__other__')?GREY:wc(k);s+=`<button data-c="${k}" style="display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:14px;border:1px solid ${on?'transparent':'#d8cdb6'};background:${on?'#f3ede0':'#fff'};color:${on?INK:'#8a8578'};font-size:12px;cursor:pointer"><span style="width:9px;height:9px;border-radius:50%;background:${sw};display:inline-block;opacity:${on?1:.4}"></span>${CLAB[k]}</button>`;});
+     fbar.innerHTML=s;
+   }
+   fbar.onclick=ev=>{const b=ev.target.closest('button');if(!b)return;
+     const a=b.getAttribute('data-act'),c=b.getAttribute('data-c');
+     if(a==='all')present.forEach(k=>active.add(k));
+     else if(a==='none')active.clear();
+     else if(c){active.has(c)?active.delete(c):active.add(c);}
+     chips();draw();};
+   chips();draw();
+  })();
   // concept drilldown
   const sel=el('fl_concept'); const prev=sel.value; sel.innerHTML='';
   F.concepts.forEach((c,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${c.concept} — ${c.total_units.toLocaleString()} sold, ${c.n_iter} iteration${c.n_iter>1?'s':''}`;sel.appendChild(o);});
@@ -927,7 +952,6 @@ el('fl_seasonbar').querySelectorAll('.fl-season').forEach(btn=>{
 });
 renderSeason(seasons[0]);
 })();
-
 
 // ── MENU INGREDIENTS ─────────────────────────────────────────────────
 (function(){
